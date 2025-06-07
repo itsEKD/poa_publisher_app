@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}All Books - POA Publishers{% endblock %}
+
+{% block content %}
+<h2>📚 All Available Books</h2>
+
+<!-- 🔍 Search + Filter Form -->
+<form method="GET" style="margin-bottom: 20px;">
+    <input type="text" name="q" placeholder="Search title or author" value="{{ request.args.get('q', '') }}" style="padding: 8px;">
+    <select name="category" style="padding: 8px;">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+            <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" style="padding: 8px;">🔎 Search</button>
+</form>
+
+  <h1>Available Books</h1>
+
+  <div class="book-list">
+    {% for book in books %}
+      <div class="book-item" style="border:1px solid #ccc; padding:15px; margin-bottom:10px;">
+        <h3>{{ book.title }}</h3>
+        <p>{{ book.description }}</p>
+        <p><strong>Price:</strong> ${{ book.price }}</p>
+
+        {% if book._id|string in purchased_ids %}
+          <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a>
+        {% else %}
+          <form action="{{ url_for('shop.buy_book', book_id=book._id) }}" method="post">
+            <button type="submit">💳 Buy for ${{ book.price }}</button>
+          </form>
+        {% endif %}
+      </div>
+    {% else %}
+      <p>No books available at the moment.</p>
+    {% endfor %}
+  </div>
+{% endblock %}
+

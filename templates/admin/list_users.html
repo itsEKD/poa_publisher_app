@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+  <h2>All Users</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th><th>Email</th><th>Role</th><th>Active?</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+          <td>{{ "Yes" if user.is_active else "No" }}</td>
+          <td>
+            <form action="{{ url_for('admin.change_role', user_id=user._id) }}"
+                  method="POST" style="display:inline">
+              <select name="role">
+                <option value="user" {% if user.role=='user' %}selected{% endif %}>User</option>
+                <option value="author" {% if user.role=='author' %}selected{% endif %}>Author</option>
+                <option value="admin" {% if user.role=='admin' %}selected{% endif %}>Admin</option>
+              </select>
+              <button type="submit">Change</button>
+            </form>
+            <form action="{{ url_for('admin.deactivate_user', user_id=user._id) }}"
+                  method="POST" style="display:inline">
+              <button type="submit" onclick="return confirm('Deactivate?')">Deactivate</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

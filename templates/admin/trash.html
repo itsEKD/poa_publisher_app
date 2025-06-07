@@ -1,0 +1,26 @@
+<!-- templates/admin/trash.html -->
+{% extends "base.html" %}
+{% block title %}Trashed Books{% endblock %}
+{% block content %}
+<h2>🗑 Trashed Books</h2>
+
+{% if books.count() == 0 %}
+<p>No books in trash.</p>
+{% else %}
+<ul>
+  {% for book in books %}
+    <li>
+      <strong>{{ book.title }}</strong>
+      <form action="{{ url_for('admin.restore_book', book_id=book._id) }}" method="POST" style="display:inline;">
+        <button type="submit">♻ Restore</button>
+      </form>
+      <form action="{{ url_for('admin.permanent_delete_book', book_id=book._id) }}" method="POST" onsubmit="return confirm('Permanently delete this book?');" style="display:inline;">
+        <button type="submit" style="color: red;">Delete Forever</button>
+      </form>
+    </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<p><a href="{{ url_for('admin.dashboard') }}">← Back to Dashboard</a></p>
+{% endblock %}

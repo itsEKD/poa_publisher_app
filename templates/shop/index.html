@@ -1,0 +1,27 @@
+<!-- templates/shop/index.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Available Books</h1>
+
+  <div class="book-list">
+    {% for book in books %}
+      <div class="book-item" style="border:1px solid #ccc; padding:15px; margin-bottom:10px;">
+        <h3>{{ book.title }}</h3>
+        <p>{{ book.description }}</p>
+        <p><strong>Price:</strong> ${{ book.price }}</p>
+
+        {% if book._id|string in purchased_ids %}
+          <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a>
+        {% else %}
+          <form action="{{ url_for('shop.buy_book', book_id=book._id) }}" method="post">
+            <button type="submit">💳 Buy for ${{ book.price }}</button>
+          </form>
+        {% endif %}
+      </div>
+    {% else %}
+      <p>No books available at the moment.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

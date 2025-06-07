@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Pending Comments{% endblock %}
+{% block content %}
+  <h2>Pending Comments</h2>
+  {% for comment in comments %}
+    {% set book = mongo.db.books.find_one({'_id': comment.book_id}) %}
+    {% set user = mongo.db.users.find_one({'_id': comment.user_id}) %}
+    <div class="comment-row">
+      <p><strong>Book:</strong> {{ book.title if book else "—" }}</p>
+      <p><strong>User:</strong> {{ user.name if user else "—" }} ({{ user.email if user else "" }})</p>
+      <p>{{ comment.content }}</p>
+      <a href="{{ url_for('admin.approve_comment', comment_id=comment._id) }}">Approve</a>
+      <form action="{{ url_for('admin.delete_comment', comment_id=comment._id) }}"
+            method="POST" style="display:inline">
+        <button type="submit" onclick="return confirm('Delete comment?')">Delete</button>
+      </form>
+      <hr/>
+    </div>
+  {% else %}
+    <p>No pending comments.</p>
+  {% endfor %}
+{% endblock %}

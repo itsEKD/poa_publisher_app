@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}All Books (Admin){% endblock %}
+{% block content %}
+  <h2>All Books</h2>
+  <a href="{{ url_for('admin.create_book') }}">+ Create New Book</a>
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th><th>Author</th><th>Price</th><th>Approved?</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for book in books %}
+        <tr>
+          <td>{{ book.title }}</td>
+          <td>
+            {% set author = mongo.db.users.find_one({'_id': book.author_id}) %}
+            {{ author.name if author else "—" }}
+          </td>
+          <td>${{ "%.2f"|format(book.price) }}</td>
+          <td>{{ "Yes" if book.is_approved else "No" }}</td>
+          <td>
+            {% if not book.is_approved %}
+              <a href="{{ url_for('admin.approve_book', book_id=book._id) }}">Approve</a>
+            {% endif %}
+            <a href="{{ url_for('admin.edit_book', book_id=book._id) }}">Edit</a>
+            <form action="{{ url_for('admin.delete_book', book_id=book._id) }}"
+                  method="POST" style="display:inline">
+              <button type="submit" onclick="return confirm('Delete?')">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

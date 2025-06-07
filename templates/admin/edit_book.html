@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Edit Book - Admin{% endblock %}
+
+{% block content %}
+<h1>✏ Edit Book</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    <label for="title">Title:</label><br>
+    <input type="text" id="title" name="title" value="{{ book.title }}" required><br><br>
+
+    <label for="author">Author:</label><br>
+    <input type="text" id="author" name="author" value="{{ book.author }}" required><br><br>
+
+    <label for="pdf_file">Replace PDF (optional):</label><br>
+    <input type="file" name="pdf_file" accept="application/pdf"><br><br>
+
+    {% if book.filename %}
+        <p>Current File: <a href="{{ url_for('uploaded_file', filename=book.filename) }}" target="_blank">{{ book.filename }}</a></p>
+    {% endif %}
+
+    <button type="submit">💾 Save Changes</button>
+    <a href="{{ url_for('admin.dashboard') }}">⬅ Cancel</a>
+</form>
+{% endblock %}

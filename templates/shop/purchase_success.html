@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Purchase Successful{% endblock %}
+{% block content %}
+  <h2>Thank you for your purchase!</h2>
+  <p>You can <a href="{{ url_for('shop.download_book', book_id=book_id) }}">download the PDF here</a>.</p>
+{% endblock %}

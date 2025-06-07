@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Upload Book{% endblock %}
+
+{% block content %}
+<h2>📤 Upload a New Book</h2>
+<form method="POST" enctype="multipart/form-data">
+    <label>Book Title:</label><br>
+    <input type="text" name="title" required><br><br>
+    <label>Book Author:</label><br>
+    <input type="text" name="author" required><br><br>
+     <label>Book description:</label><br>
+    <input type="text" name="description" required><br><br>
+
+    <label>Select PDF File:</label><br>
+    <input type="file" name="file" accept="application/pdf" required><br><br>
+
+     <label>Book Category:</label><br>
+    <input type="text" name="category" required><br><br>
+
+    <label>Price (e.g., 9.99)</label><br/>
+    <input type="number" name="price" step="0.01" required /><br/>
+
+    <button type="submit">Upload</button>
+</form>
+{% endblock %}

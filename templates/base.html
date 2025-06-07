@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}POA Publishers{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            height: 100%; /* Make sure body and html take full height */
+            width: 100%;  /* Ensure the width is full screen */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        main {
+            flex-grow: 1; /* Ensure main section takes available space */
+            width: 100%;  /* Full width */
+            padding: 0px 0px;
+        }
+
+        .container {
+            width: 100%; /* Ensure container takes full width */
+            margin: 0 auto;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        header {
+            background-color: #222;
+            color: white;
+            padding: 30px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+        }
+
+        header nav ul {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        header nav a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        header nav a:hover {
+            color: #f39c12; /* Highlight color */
+        }
+
+        .flash {
+            margin: 0px auto;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .flash div {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .flash .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .flash .danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        footer {
+            background-color: #222;
+            color: white;
+            text-align: center;
+            padding: 20px 10px;
+            font-size: 14px;
+            margin-top: 40px;
+        }
+
+        footer p {
+            margin-bottom: 10px;
+        }
+
+        footer a {
+            color: #f39c12;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        ul.nav {
+            list-style: none;
+            display: flex;
+            gap: 15px;
+            padding: 0;
+            margin: 0;
+            align-items: center;
+        }
+
+        ul.nav li {
+            display: inline;
+        }
+
+        /* Responsive design tweaks */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 15px 20px;
+            }
+
+            header nav ul {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            footer p {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1><a href="{{ url_for('home') }}">📚 POA PUBLISHERS</a></h1>
+    <nav>
+        <ul class="nav">
+            <li><a href="{{ url_for('home') }}">Home</a></li>
+            <li><a href="{{ url_for('books.all_books') }}">Books</a></li>
+            <li><a href="#">Authors</a></li>
+            <li><a href="{{ url_for('blog.list_all') }}">Blog</a></li>
+            <li><a href="#">Contact Us</a></li>
+
+            {% if session.get("user_role") in ["admin", "author"] %}
+                <li><a href="{{ url_for('blog.create') }}">✍️ Write a Blog</a></li>
+            {% endif %}
+
+            {% if session.get("user_email") %}
+                {% if session.get("user_role") == "admin" %}
+                    <li><a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a></li>
+                {% elif session.get("user_role") == "author" %}
+                    <li><a href="{{ url_for('author.dashboard') }}">Author Dashboard</a></li>
+                {% endif %}
+                <li><span style="color:#ccc;">Welcome, {{ session.get("user_email") }}</span></li>
+                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>
+
+<div class="flash">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <p>&copy; {{ current_year or 2025 }} POA Publishers. All rights reserved.</p>
+    <p>📧 <a href="mailto:info@poapublishers.com">info@poapublishers.com</a> | 📍 Nairobi, Kenya</p>
+    <p>📧 <a href="mailto:info@ekddevelopers.ac.ke">info@ekddevelopers.ac.ke</a> | 📍 Nairobi, Kenya</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+<h2>My Purchased Books</h2>
+{% for book in books %}
+  <div>
+    <h3>{{ book.title }}</h3>
+    <a href="{{ book.pdf_url }}" target="_blank">Download</a>
+  </div>
+{% endfor %}

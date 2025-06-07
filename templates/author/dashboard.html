@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Author Dashboard{% endblock %}
+{% block content %}
+  <h2>Your Books</h2>
+<p><a href="{{ url_for('author.upload_book') }}">➕ Upload a new book</a></p>
+ <p><a href="{{ url_for('blog.create') }}">✍️ Write a Blog</a></p>
+
+
+
+
+  <br>
+ 
+  <ul>
+    
+<h3>✅ Approved Books</h3>
+{% if approved_books %}
+    <ul>
+    {% for book in approved_books %}
+        <li>
+    <strong>{{ book.title }}</strong><br>
+    <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a> |
+    <a href="{{ url_for('author.edit_book', book_id=book._id) }}">✏️ Edit</a> |
+    <a href="{{ url_for('author.delete_book', book_id=book._id) }}" onclick="return confirm('Delete this book?')">🗑️ Delete</a>
+</li>
+
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No approved books yet.</p>
+{% endif %}
+
+<hr>
+
+<h3>⏳ Pending Approval</h3>
+{% if pending_books %}
+    <ul>
+    {% for book in pending_books %}
+        <li><strong>{{ book.title }}</strong> — Pending approval</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No books pending approval.</p>
+{% endif %}
+  </ul>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Pending Book Approvals{% endblock %}
+
+{% block content %}
+<h2>📚 Pending Book Approvals</h2>
+
+{% if books %}
+    <ul>
+    {% for book in books %}
+        <li>
+            <strong>{{ book.title }}</strong> by {{ book.author }} —
+            <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 View</a> |
+            <a href="{{ url_for('admin.approve_book', book_id=book._id) }}">✅ Approve</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No books pending approval.</p>
+{% endif %}
+{% endblock %}

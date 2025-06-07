@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Blog Posts - POA Publishers{% endblock %}
+
+{% block content %}
+<h2>📖 Blog Articles</h2>
+
+{% if session.get("user_role") in ["admin", "author"] %}
+    <p><a href="{{ url_for('blog.create') }}" style="float:right;">✍️ New Blog Post</a></p>
+{% endif %}
+
+{% for blog in blogs %}
+    <div style="margin-bottom: 25px; padding: 10px; background: #fff; border: 1px solid #ccc;">
+        <h3>{{ blog.title }}</h3>
+        <p><strong>Category:</strong> {{ blog.category }} | <strong>By:</strong> {{ blog.author }} | <em>{{ blog.created_at.strftime('%Y-%m-%d') }}</em></p>
+        <p>{{ blog.content }}</p>
+    </div>
+
+
+    
+{% set reactions = blog.reactions.user_reactions if blog.reactions and blog.reactions.get('user_reactions') else {} %}
+{% set user_reaction = reactions.get(session.get("user_id")) %}
+
+<div class="reactions" data-blog-id="{{ blog._id }}">
+  {% for reaction in ["like", "dislike", "love", "funny", "wow"] %}
+    {% set count = reactions.values() | select("equalto", reaction) | list | length %}
+    <button class="reaction-btn"
+            data-reaction="{{ reaction }}"
+            style="background-color: {% if user_reaction == reaction %}#d1e7dd{% else %}#f0f0f0{% endif %}; margin: 0 5px;">
+      {{ "👍" if reaction == "like" else
+         "👎" if reaction == "dislike" else
+         "❤️" if reaction == "love" else
+         "😂" if reaction == "funny" else
+         "😮" }}
+      <span class="reaction-count">{{ count }}</span>
+    </button>
+  {% endfor %}
+</div>
+
+</div>
+
+
+
+{% else %}
+
+    <p>No blog posts yet.</p>
+{% endfor %}
+
+
+{% endblock %}
