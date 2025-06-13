@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}{{ blog.title }} - POA Publishers{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <div class="mb-4">
+    <h1>{{ blog.title }}</h1>
+    <p class="text-muted">
+      <strong>By:</strong> {{ blog.author_email }} |
+      <strong>Category:</strong> {{ blog.category }} |
+      <em>{{ blog.created_at.strftime('%Y-%m-%d') }}</em>
+    </p>
+    {% if blog.cover_image %}
+      <img src="{{ url_for('static', filename='uploads/blog_covers/' + blog.cover_image) }}"
+           class="img-fluid rounded my-3" alt="Cover image for {{ blog.title }}">
+    {% endif %}
+    <div class="content" style="white-space: pre-wrap;">
+      {{ blog.content | safe }}
+    </div>
+  </div>
+
+  <!-- Reactions -->
+  {% set reactions = blog.reactions.user_reactions if blog.reactions and blog.reactions.get('user_reactions') else {} %}
+  {% set user_reaction = reactions.get(session.get("user_id")) %}
+  <div class="d-flex reactions mb-4" data-blog-id="{{ blog._id }}">
+    {% for reaction in ["like", "dislike", "love", "funny", "wow"] %}
+      {% set count = reactions.values() | select("equalto", reaction) | list | length %}
+      <button class="btn btn-sm reaction-btn me-2"
+              data-reaction="{{ reaction }}"
+              style="background-color: {% if user_reaction == reaction %}#d1e7dd{% else %}#f8f9fa{% endif %};">
+        {{ "👍" if reaction == "like" else
+           "👎" if reaction == "dislike" else
+           "❤️" if reaction == "love" else
+           "😂" if reaction == "funny" else
+           "😮" }}
+        <span class="reaction-count ms-1">{{ count }}</span>
+      </button>
+    {% endfor %}
+  </div>
+
+  <!-- Comments -->
+  <hr class="my-4">
+  <h4>💬 Comments</h4>
+
+  {% if comments %}
+    {% for comment in comments %}
+      <div class="mb-3 p-3 border rounded bg-light">
+        <p class="mb-1"><strong>{{ comment.user }}</strong> — <em>{{ comment.timestamp.strftime('%Y-%m-%d %H:%M') }}</em></p>
+        <p class="mb-0">{{ comment.text }}</p>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No comments yet. Be the first!</p>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('blog.add_comment', blog_id=blog._id) }}">
+     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <textarea name="comment" class="form-control" placeholder="Write your comment..." required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Post Comment</button>
+  </form>
+  {% for comment in comments %}
+  <div class="mb-3 p-3 border rounded bg-light">
+    <p class="mb-1">
+      <strong>{{ comment.user }}</strong>
+      — <em>{{ comment.timestamp.strftime('%Y-%m-%d %H:%M') }}</em>
+      {% if session.get("user_email") == blog.author_email or session.get("role") == "admin" %}
+      <form method="POST" action="{{ url_for('blog.delete_comment', blog_id=blog._id, comment_index=loop.index0) }}" style="display:inline;">
+        <button type="submit" class="btn btn-sm btn-danger ms-2">Delete</button>
+      </form>
+      {% endif %}
+    </p>
+    <p class="mb-0">{{ comment.text }}</p>
+  </div>
+{% endfor %}
+
+</div>
+
+<!-- Reaction sound -->
+<audio id="reactionSound" src="{{ url_for('static', filename='sounds/reaction-pop.mp3') }}" preload="auto"></audio>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".reaction-btn").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const blogCard = btn.closest(".container");
+      const blogId = blogCard.querySelector(".reactions").dataset.blogId;
+      const reaction = btn.dataset.reaction;
+
+      fetch("/blog/react", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ blog_id: blogId, reaction: reaction })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.counts) {
+          const buttons = blogCard.querySelectorAll(".reaction-btn");
+
+          buttons.forEach(b => {
+            const r = b.dataset.reaction;
+            const countSpan = b.querySelector(".reaction-count");
+            const newCount = data.counts[r] || 0;
+            countSpan.textContent = newCount;
+            countSpan.classList.add("count-change");
+            setTimeout(() => countSpan.classList.remove("count-change"), 500);
+            b.style.backgroundColor = (reaction === r) ? "#d1e7dd" : "#f8f9fa";
+          });
+
+          const sound = document.getElementById("reactionSound");
+          if (sound) sound.play().catch(() => {});
+        }
+      });
+    });
+  });
+});
+</script>
+
+<style>
+.reaction-btn {
+  border: 1px solid #ccc;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  user-select: none;
+  font-size: 1.1rem;
+}
+.reaction-btn:hover {
+  background-color: #cfe2ff !important;
+}
+.reaction-count.count-change {
+  animation: countPop 0.3s ease;
+}
+@keyframes countPop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+</style>
+{% endblock %}

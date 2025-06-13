@@ -3,23 +3,41 @@
 {% block title %}Login - POA Publishers{% endblock %}
 
 {% block content %}
-<div style="max-width: 400px; margin: 40px auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); background-color: #f9f9f9;">
-    <h2 style="text-align: center;">🔐 Login</h2>
-    <form method="POST" style="display: flex; flex-direction: column; gap: 15px;">
-        <div>
-            <label for="email">📧 Email:</label><br>
-            <input type="email" id="email" name="email" required style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
+<div class="container mt-5">
+    <div class="card mx-auto shadow-sm" style="max-width: 450px;">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4">🔐 Login</h3>
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">📧 Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">🔒 Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Remember Me</label>
+                </div>
+
+                <div class="mb-3 text-end">
+                    <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none" style="font-size: 0.9em;">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">Login</button>
+
+                <div class="text-center mt-3">
+                    <p>Don't have an account? 
+                        <a href="{{ url_for('auth.register') }}">Register Now</a>
+                    </p>
+                </div>
+            </form>
         </div>
-        <div>
-            <label for="password">🔒 Password:</label><br>
-            <input type="password" id="password" name="password" required style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
-        </div>
-        <button type="submit" style="padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Login
-        </button>
-        <p style="text-align: center; margin-top: 10px;">
-            Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a>
-        </p>
-    </form>
+    </div>
 </div>
 {% endblock %}

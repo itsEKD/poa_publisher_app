@@ -1,0 +1,151 @@
+{# templates/author/my_books_overview.html #}
+{# This file is a partial to be included by author/dashboard.html #}
+
+{# No extends or block here - this will be loaded as a partial #}
+
+<div class="container py-4">
+
+  <h2 class="mb-3">📚 My Uploaded Books</h2>
+
+  <h5 class="text-warning">⏳ Pending Approval</h5>
+  {% if pending_books %}
+  <div class="table-responsive mb-5">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-warning">
+        <tr>
+          <th>Cover</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Tags</th>
+          <th>Price</th>
+          <th>Uploaded At</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for book in pending_books %}
+        <tr>
+          <td>
+            {% if book.get('cover_image') and book.get('cover_image') != 'default-book.png' %}
+              <img src="{{ url_for('static', filename='uploads/book_covers/' ~ book.get('cover_image')) }}" style="height: 80px;" class="rounded shadow-sm" alt="Book Cover">
+            {% else %}
+              <img src="{{ url_for('static', filename='images/default-book.png') }}" style="height: 80px;" class="rounded shadow-sm" alt="Default Cover">
+            {% endif %}
+          </td>
+          <td>{{ book.get('title') }}</td>
+          <td>{{ book.get('category') }}</td>
+          <td>{{ book.get('tags') | join(', ') }}</td>
+          <td>
+            {% if book.get('is_free') %}
+              Free
+            {% elif book.get('price') is not none %}
+              ${{ "%.2f"|format(book.get('price')|float) }}
+            {% else %}
+              <span class="text-muted">N/A</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if book.get('uploaded_at') %}
+              {{ book.uploaded_at.strftime('%Y-%m-%d %H:%M') if book.uploaded_at is datetime else book.uploaded_at }}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge bg-warning text-dark">Awaiting Admin Review</span>
+          </td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              {% set pdf_filename = book.get('file_path') or book.get('pdf_path') %}
+              {% if pdf_filename %}
+                <a class="btn btn-sm btn-primary" href="{{ url_for('uploaded_file', filename=pdf_filename.split('/')[-1]) }}" target="_blank">📥 View PDF</a>
+              {% else %}
+                <span class="text-muted">No PDF</span>
+              {% endif %}
+              <a href="{{ url_for('author.edit_book', book_id=book['_id']) }}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+              <form action="{{ url_for('author.delete_book', book_id=book['_id']) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this book? This action cannot be undone.');">
+                <button type="submit" class="btn btn-sm btn-danger">❌ Delete</button>
+              </form>
+              <a href="{{ url_for('author.book_feedback_page', book_id=book['_id']) }}" class="btn btn-sm btn-outline-info">💬 Feedback</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted">You have no books currently pending approval.</p>
+  {% endif %}
+
+  <hr class="my-5">
+
+  <h5 class="text-success">✅ Approved Books</h5>
+  {% if approved_books %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-success">
+        <tr>
+          <th>Cover</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Tags</th>
+          <th>Price</th>
+          <th>Published At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for book in approved_books %}
+        <tr>
+          <td>
+            {% if book.get('cover_image') and book.get('cover_image') != 'default-book.png' %}
+              <img src="{{ url_for('static', filename='uploads/book_covers/' ~ book.get('cover_image')) }}" style="height: 80px;" class="rounded shadow-sm" alt="Book Cover">
+            {% else %}
+              <img src="{{ url_for('static', filename='images/default-book.png') }}" style="height: 80px;" class="rounded shadow-sm" alt="Default Cover">
+            {% endif %}
+          </td>
+          <td>{{ book.get('title') }}</td>
+          <td>{{ book.get('category') }}</td>
+          <td>{{ book.get('tags') | join(', ') }}</td>
+          <td>
+            {% if book.get('is_free') %}
+              Free
+            {% elif book.get('price') is not none %}
+              ${{ "%.2f"|format(book.get('price')|float) }}
+            {% else %}
+              <span class="text-muted">N/A</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if book.get('uploaded_at') %}
+              {{ book.uploaded_at.strftime('%Y-%m-%d %H:%M') if book.uploaded_at is datetime else book.uploaded_at }}
+            {% else %}
+              N/A
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              {% set pdf_filename = book.get('file_path') or book.get('pdf_path') %}
+              {% if pdf_filename %}
+                <a class="btn btn-sm btn-primary" href="{{ url_for('uploaded_file', filename=pdf_filename.split('/')[-1]) }}" target="_blank">📥 Download PDF</a>
+              {% else %}
+                <span class="text-muted">No PDF</span>
+              {% endif %}
+              <a href="{{ url_for('author.edit_book', book_id=book['_id']) }}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+              <form action="{{ url_for('author.delete_book', book_id=book['_id']) }}" method="POST" onsubmit="return confirm('Delete this book?');">
+                <button type="submit" class="btn btn-sm btn-danger">❌ Delete</button>
+              </form>
+              <a href="{{ url_for('author.book_feedback_page', book_id=book['_id']) }}" class="btn btn-sm btn-outline-info">💬 Feedback</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted">You have no approved books yet.</p>
+  {% endif %}
+</div>

@@ -1,0 +1,43 @@
+{% extends "admin/dashboard.html" %}
+{% block main %}
+
+<!-- Do NOT extend base.html -->
+<div id="main-content">
+  <h2>📨 Contact Messages</h2>
+
+  {% if messages %}
+    <div class="table-responsive">
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Subject</th>
+            <th>Message</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for msg in messages %}
+          <tr>
+            <td>{{ msg.name }}</td>
+            <td>{{ msg.email }}</td>
+            <td>{{ msg.subject }}</td>
+            <td>{{ msg.message }}</td>
+            <td>{{ msg.submitted_at.strftime('%Y-%m-%d %H:%M') if msg.submitted_at else '' }}</td>
+            <td>
+              <a href="{{ url_for('admin.view_single_message', message_id=msg._id) }}" class="action-edit">View</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>No messages yet.</p>
+  {% endif %}
+</div>
+
+
+  {% endblock %}

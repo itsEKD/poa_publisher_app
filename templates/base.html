@@ -3,101 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}POA Publishers{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap and Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
-        * {
-            box-sizing: border-box;
+        html, body {
+            height: 100%;
             margin: 0;
             padding: 0;
-        }
-
-        body, html {
-            height: 100%; /* Make sure body and html take full height */
-            width: 100%;  /* Ensure the width is full screen */
-            margin: 0;
-            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         }
 
         main {
-            flex-grow: 1; /* Ensure main section takes available space */
-            width: 100%;  /* Full width */
-            padding: 0px 0px;
+            flex-grow: 1;
         }
 
-        .container {
-            width: 100%; /* Ensure container takes full width */
-            margin: 0 auto;
+        .container-fluid.no-gutters {
+            padding-left: 0;
+            padding-right: 0;
+            margin-left: 0;
+            margin-right: 0;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
+        .book-tile:hover {
+            transform: scale(1.015);
+            transition: transform 0.2s ease-in-out;
         }
 
-        header {
-            background-color: #222;
-            color: white;
-            padding: 30px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
+        .navbar-brand {
+            font-weight: bold;
         }
 
-        header h1 {
-            margin: 0;
-            font-size: 26px;
-        }
-
-        header a {
-            color: white;
-            text-decoration: none;
-        }
-
-        header nav ul {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-
-        header nav a {
-            color: white;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-
-        header nav a:hover {
-            color: #f39c12; /* Highlight color */
-        }
-
-        .flash {
-            margin: 0px auto;
-            width: 90%;
-            max-width: 800px;
-        }
-
-        .flash div {
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        .flash .success {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .flash .danger {
-            background-color: #f8d7da;
-            color: #721c24;
+        .navbar-nav .nav-link.active {
+            font-weight: 600;
+            color: #f39c12 !important;
         }
 
         footer {
@@ -107,10 +54,7 @@
             padding: 20px 10px;
             font-size: 14px;
             margin-top: 40px;
-        }
-
-        footer p {
-            margin-bottom: 10px;
+            flex-shrink: 0;
         }
 
         footer a {
@@ -122,88 +66,112 @@
             text-decoration: underline;
         }
 
-        ul.nav {
-            list-style: none;
-            display: flex;
-            gap: 15px;
-            padding: 0;
-            margin: 0;
-            align-items: center;
+        .toast-container {
+            z-index: 1100;
+            margin-top: 80px;
         }
 
-        ul.nav li {
-            display: inline;
-        }
-
-        /* Responsive design tweaks */
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 15px 20px;
-            }
-
-            header nav ul {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            footer p {
-                font-size: 12px;
-            }
+        .toast .toast-body i {
+            margin-right: 8px;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <h1><a href="{{ url_for('home') }}">📚 POA PUBLISHERS</a></h1>
-    <nav>
-        <ul class="nav">
-            <li><a href="{{ url_for('home') }}">Home</a></li>
-            <li><a href="{{ url_for('books.all_books') }}">Books</a></li>
-            <li><a href="#">Authors</a></li>
-            <li><a href="{{ url_for('blog.list_all') }}">Blog</a></li>
-            <li><a href="#">Contact Us</a></li>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container-fluid px-3">
+        <a class="navbar-brand" href="{{ url_for('home') }}">📚 POA PUBLISHERS</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            {% if session.get("user_role") in ["admin", "author"] %}
-                <li><a href="{{ url_for('blog.create') }}">✍️ Write a Blog</a></li>
-            {% endif %}
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <span class="nav-link disabled">Current Role: {{ current_user.role if current_user.is_authenticated else 'Guest' }}</span>
+                </li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('books.view_books') }}">Books</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('blog.list_all') }}">Blog</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('shop.about') }}">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('shop.contact') }}">Contact</a></li>
 
-            {% if session.get("user_email") %}
-                {% if session.get("user_role") == "admin" %}
-                    <li><a href="{{ url_for('admin.dashboard') }}">Admin Dashboard</a></li>
-                {% elif session.get("user_role") == "author" %}
-                    <li><a href="{{ url_for('author.dashboard') }}">Author Dashboard</a></li>
+                {% if current_user.is_authenticated and current_user.role in ['admin'] %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('blog.create') }}">✍️ Write Blog</a></li>
                 {% endif %}
-                <li><span style="color:#ccc;">Welcome, {{ session.get("user_email") }}</span></li>
-                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-            {% else %}
-                <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-</header>
 
-<div class="flash">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="{{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'admin' %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin Panel</a></li>
+                    {% elif current_user.role == 'author' %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('author.dashboard') }}">Author Panel</a></li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <span class="nav-link disabled">Welcome, {{ current_user.name or current_user.email }}</span>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.login') }}">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Toast Notifications -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        {% set icon = {
+            'success': 'fa-circle-check',
+            'error': 'fa-circle-exclamation',
+            'danger': 'fa-triangle-exclamation',
+            'info': 'fa-circle-info',
+            'warning': 'fa-triangle-exclamation'
+        }[category] if category in ['success', 'error', 'danger', 'info', 'warning'] else 'fa-circle-info' %}
+        <div class="toast align-items-center text-white bg-{{ 'danger' if category == 'error' else category }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+          <div class="d-flex">
+            <div class="toast-body">
+              <i class="fa-solid {{ icon }}"></i> {{ message }}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
 </div>
 
-<main>
-    {% block content %}{% endblock %}
+<!-- Main Content -->
+<main class="mt-4">
+    <div class="container-fluid no-gutters">
+        {% block content %}{% endblock %}
+    </div>
 </main>
 
+<!-- Footer -->
 <footer>
     <p>&copy; {{ current_year or 2025 }} POA Publishers. All rights reserved.</p>
     <p>📧 <a href="mailto:info@poapublishers.com">info@poapublishers.com</a> | 📍 Nairobi, Kenya</p>
-    <p>📧 <a href="mailto:info@ekddevelopers.ac.ke">info@ekddevelopers.ac.ke</a> | 📍 Nairobi, Kenya</p>
+    <p>📧 <a href="mailto:info@ekddevelopers.ac.ke">info@ekddevelopers.ac.ke</a></p>
 </footer>
 
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toastElList = [].slice.call(document.querySelectorAll('.toast'));
+
+        const sound = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
+        
+        toastElList.forEach(function (toastEl) {
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
+            sound.cloneNode().play();  // Play sound for each toast
+        });
+    });
+</script>
 </body>
 </html>

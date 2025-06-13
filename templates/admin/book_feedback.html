@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Give Feedback on "{{ book.title }}"{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h2>Feedback for: {{ book.title }}</h2>
+  <form method="POST">
+    <div class="mb-3">
+      <label for="feedback" class="form-label">Your Feedback</label>
+      <textarea class="form-control" id="feedback" name="feedback" rows="5" required>{{ book.get('admin_feedback', '') }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit Feedback</button>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary ms-2">Cancel</a>
+  </form>
+</div>
+{% endblock %}

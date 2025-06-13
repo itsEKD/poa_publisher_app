@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Reply to Message{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h3>📨 Message from {{ message.name }}</h3>
+  <p><strong>Email:</strong> {{ message.email }}</p>
+  <p><strong>Subject:</strong> {{ message.subject }}</p>
+  <p><strong>Message:</strong> {{ message.message }}</p>
+  <p><strong>Date:</strong> {{ message.submitted_at.strftime('%Y-%m-%d %H:%M') }}</p>
+
+  {% if message.reply %}
+    <hr>
+    <h5 class="text-success">✅ Your Reply</h5>
+    <p>{{ message.reply }}</p>
+    <p><small><strong>Replied At:</strong> {{ message.replied_at.strftime('%Y-%m-%d %H:%M') }}</small></p>
+  {% else %}
+    <hr>
+    <form method="POST">
+      <div class="form-group">
+        <label for="reply">Write your reply:</label>
+        <textarea name="reply" class="form-control" rows="5" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary mt-2">Send Reply</button>
+    </form>
+  {% endif %}
+
+  <a href="{{ url_for('admin.view_messages') }}" class="btn btn-secondary mt-4">← Back to All Messages</a>
+</div>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% block title %}Blog Posts - POA Publishers{% endblock %}
+
+{% block content %}
+{% set page = page or 1 %}
+{% set total_pages = total_pages or 1 %}
+
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📖 Blog Articles</h2>
+    {% if session.get("user_role") in ["admin", "author"] %}
+      <a href="{{ url_for('blog.create') }}" class="btn btn-success">
+        <i class="bi bi-journal-plus"></i> New Blog Post
+      </a>
+    {% endif %}
+  </div>
+
+  <form method="GET" class="row g-3 mb-4">
+    <div class="col-md-4">
+      <input type="text" name="search" class="form-control" placeholder="Search by title..." value="{{ request.args.get('search', '') }}">
+    </div>
+    <div class="col-md-3">
+      <select name="category" class="form-select">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+    </div>
+  </form>
+
+  {% if blogs %}
+    <div class="row">
+      {% for blog in blogs %}
+        <div class="col-md-6 mb-4">
+          <div class="card shadow-sm h-100">
+            {% if blog.cover_image %}
+              <img src="{{ url_for('static', filename=blog.cover_image.split('static/')[-1]) }}"
+                   class="card-img-top"
+                   alt="Cover Image for {{ blog.title }}"
+                   style="max-height: 220px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title d-flex align-items-center justify-content-between">
+                <a href="{{ url_for('blog.view', blog_id=blog._id) }}" class="text-dark text-decoration-none">
+                  {{ blog.title }}
+                </a>
+                {% if not blog.approved %}
+                  <div class="ms-2">
+                    {% if session.get("user_role") in ["admin", "author"] %}
+                      <span class="badge bg-warning text-dark">Pending Review</span>
+                    {% endif %}
+                    {% if session.get("user_role") == "admin" %}
+                      <form action="{{ url_for('blog.approve', blog_id=blog._id) }}" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-success ms-1">Approve</button>
+                      </form>
+                    {% endif %}
+                    {% if session.get('user_email') == blog.author_email or session.get('role') == 'admin' %}
+                      <a href="{{ url_for('blog.edit_blog', blog_id=blog._id) }}" class="btn btn-warning mb-3">
+                        ✏️ Edit this post
+                      </a>
+                    {% endif %}
+
+                  </div>
+                {% endif %}
+              </h5>
+              <p class="text-muted mb-2">
+                <strong>{{ blog.category }}</strong> &nbsp;|&nbsp;
+                <em>{{ blog.created_at.strftime('%Y-%m-%d') }}</em>
+              </p>
+              <p class="flex-grow-1">{{ blog.content[:150]|striptags }}...</p>
+
+              {% set reactions = blog.reactions.user_reactions if blog.reactions and blog.reactions.get('user_reactions') else {} %}
+              {% set user_reaction = reactions.get(session.get("user_id")) %}
+
+              <div class="d-flex reactions mt-3" data-blog-id="{{ blog._id }}">
+                {% for reaction in ["like", "dislike", "love", "funny", "wow"] %}
+                  {% set count = reactions.values() | select("equalto", reaction) | list | length %}
+                  <button class="btn btn-sm reaction-btn me-2"
+                          data-reaction="{{ reaction }}"
+                          style="background-color: {% if user_reaction == reaction %}#d1e7dd{% else %}#f8f9fa{% endif %};">
+                    {{ "👍" if reaction == "like" else
+                       "👎" if reaction == "dislike" else
+                       "❤️" if reaction == "love" else
+                       "😂" if reaction == "funny" else
+                       "😮" }}
+                    <span class="reaction-count ms-1">{{ count }}</span>
+                  </button>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center">
+        {% if page > 1 %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('blog.list_all', page=page-1, search=request.args.get('search'), category=request.args.get('category')) }}">Previous</a>
+          </li>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+          <li class="page-item {% if page == p %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('blog.list_all', page=p, search=request.args.get('search'), category=request.args.get('category')) }}">{{ p }}</a>
+          </li>
+        {% endfor %}
+        {% if page < total_pages %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('blog.list_all', page=page+1, search=request.args.get('search'), category=request.args.get('category')) }}">Next</a>
+          </li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% else %}
+    <p class="text-muted">No blog posts found.</p>
+  {% endif %}
+</div>
+
+
+<style>
+.reaction-btn {
+  border: 1px solid #ccc;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  user-select: none;
+  font-size: 1.1rem;
+}
+.reaction-btn:hover {
+  background-color: #cfe2ff !important;
+}
+.reaction-btn.active {
+  background-color: #d1e7dd !important;
+  border-color: #bcd0c7;
+}
+.pulse {
+  animation: pulseAnim 0.3s ease-in-out;
+}
+@keyframes pulseAnim {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.reaction-count {
+  font-weight: 600;
+}
+@keyframes countPop {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.reaction-count.count-change {
+  animation: countPop 0.3s ease;
+}
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll(".reaction-btn").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const blogCard = btn.closest(".card");
+      const blogId = blogCard.querySelector(".reactions").dataset.blogId;
+      const reaction = btn.dataset.reaction;
+
+      fetch("/blog/react", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ blog_id: blogId, reaction: reaction })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.counts) {
+          const buttons = blogCard.querySelectorAll(".reaction-btn");
+
+          buttons.forEach(b => {
+            const r = b.dataset.reaction;
+            const countSpan = b.querySelector(".reaction-count");
+            const newCount = data.counts[r] || 0;
+
+            countSpan.textContent = newCount;
+            countSpan.classList.add("animate-count");
+            setTimeout(() => countSpan.classList.remove("animate-count"), 500);
+
+            if (reaction === r) {
+              b.style.backgroundColor = "#d1e7dd";
+            } else {
+              b.style.backgroundColor = "#f8f9fa";
+            }
+          });
+
+          const sound = document.getElementById("reactionSound");
+          if (sound) sound.play().catch(() => {});
+        }
+      });
+    });
+  });
+});
+</script>
+
+<audio id="reactionSound" src="{{ url_for('static', filename='sounds/reaction-pop.mp3') }}" preload="auto"></audio>
+{% endblock %}

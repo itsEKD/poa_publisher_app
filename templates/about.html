@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}About Us - POA Publishers{% endblock %}
+
+{% block content %}
+<style>
+  /* Full page background */
+  .about-page {
+    position: relative;
+    background-image: url('{{ url_for('static', filename='css/images/bg3.jpg') }}');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    min-height: 100vh;
+    padding: 60px 20px;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  /* Dark overlay */
+  .about-page::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 0;
+  }
+
+  /* Content container: positioned relative to overlay */
+ .about-content {
+  position: relative;
+  max-width: 900px;
+  margin: auto;
+  z-index: 1;
+  /* Make background fully transparent */
+  background-color: rgba(0, 0, 0, 0.25); /* slight dark transparent overlay */
+  padding: 30px 40px;
+  border-radius: 12px;
+  color: white; /* switch text color to white for readability */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+  .about-heading {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #0d6efd;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 3px solid #0d6efd;
+  display: inline-block;
+  animation: typing 4s steps(30, end) forwards, blink 0.75s step-end infinite 4s, sway 3s ease-in-out infinite 5s;
+}
+
+/* Typing: goes from width 0 to full */
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+/* Cursor blinking */
+@keyframes blink {
+  0%, 100% { border-color: #0d6efd; }
+  50% { border-color: transparent; }
+}
+
+/* Sway effect: subtle left-right rotation */
+@keyframes sway {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(2deg); }
+  50% { transform: rotate(0deg); }
+  75% { transform: rotate(-2deg); }
+}
+
+  .section-title {
+    color: #0d6efd;
+    margin-top: 30px;
+    font-weight: 600;
+  }
+
+  ul {
+    padding-left: 20px;
+  }
+
+  .timeline {
+
+    margin-top: 20px;
+    border-left: 3px solid #0d6efd;
+    padding-left: 20px;
+  }
+
+  .timeline-item {
+    margin-bottom: 15px;
+    position: relative;
+    color: white;
+  }
+
+  .timeline-item::before {
+    content: '';
+    width: 14px;
+    height: 14px;
+    background-color: #0d6efd;
+    border-radius: 50%;
+    position: absolute;
+    left: -30px;
+    top: 5px;
+  }
+
+  .team-member {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+
+  .team-member img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #0d6efd;
+    transition: transform 0.3s ease;
+  }
+
+  .team-member img:hover {
+    transform: scale(1.1);
+  }
+
+  .back-btn {
+    margin-top: 40px;
+    text-align: center;
+  }
+
+  .btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 768px) {
+    .about-heading {
+      font-size: 2rem;
+    }
+
+    .about-content {
+      padding: 10px;
+      margin: 20px 10px;
+    }
+  }
+</style>
+
+<div class="about-page">
+  <div class="about-content">
+    <h1 class="about-heading">About POA Publishers</h1>
+
+    <p>
+      <strong>POA Publishers</strong> is a platform built on the belief that every voice matters. 
+      Our mission is to promote authorship, mentorship, and scholarship opportunities for aspiring writers and passionate learners worldwide.
+    </p>
+
+    <h3 class="section-title">🌟 Our Vision</h3>
+    <p>
+      We envision a world where authors can easily share their knowledge and stories, and readers can discover impactful books and ideas.
+    </p>
+
+    <h3 class="section-title">📚 Our Programs</h3>
+    <ul>
+      <li><strong>Authorship:</strong> Helping writers self-publish and distribute their books globally.</li>
+      <li><strong>Mentorship:</strong> Connecting emerging authors with experienced guides and editors.</li>
+      <li><strong>Scholarships:</strong> Supporting students in literature, journalism, and education fields.</li>
+    </ul>
+
+    <h3 class="section-title">📆 Our Journey</h3>
+    <div class="timeline">
+      <div class="timeline-item">
+        <strong>2020:</strong> POA Publishers was founded with a goal to democratize book publishing.
+      </div>
+      <div class="timeline-item">
+        <strong>2021:</strong> Launched our mentorship program with 100+ author-mentor pairs.
+      </div>
+      <div class="timeline-item">
+        <strong>2022:</strong> Introduced digital scholarships for underprivileged students.
+      </div>
+      <div class="timeline-item">
+        <strong>2023:</strong> Reached over 10,000 downloads across 30+ countries.
+      </div>
+    </div>
+
+    <h3 class="section-title text-center mt-5">👥 Meet Our Team</h3>
+    <div class="row">
+      <div class="col-md-4 team-member">
+        <img src="{{ url_for('static', filename='images/team1.jpg') }}" alt="Jane Doe">
+        <h5>Jane Doe</h5>
+        <p>Founder & CEO</p>
+      </div>
+      <div class="col-md-4 team-member">
+        <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="John Smith">
+        <h5>John Smith</h5>
+        <p>Editorial Director</p>
+      </div>
+      <div class="col-md-4 team-member">
+        <img src="{{ url_for('static', filename='images/team3.jpg') }}" alt="Mary Johnson">
+        <h5>Mary Johnson</h5>
+        <p>Mentorship Lead</p>
+      </div>
+    </div>
+
+    <div class="back-btn">
+      <a href="{{ url_for('shop.index') }}" class="btn btn-primary btn-lg">← Back to Home</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

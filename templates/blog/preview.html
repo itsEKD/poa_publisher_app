@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container my-4">
+    <h2>{{ blog.title }}</h2>
+    <p><strong>Category:</strong> {{ blog.category }}</p>
+    <p><strong>Tags:</strong> {{ blog.tags | join(', ') }}</p>
+    <p><strong>Author:</strong> {{ blog.author_email }}</p>
+    <p><em>{{ blog.created_at.strftime("%b %d, %Y") }}</em></p>
+
+    {% if blog.cover_image %}
+    <img src="{{ blog.cover_image }}" class="img-fluid rounded mb-3" alt="Blog Cover">
+    {% endif %}
+
+    {% if blog.summary %}
+    <p class="lead">{{ blog.summary }}</p>
+    {% endif %}
+
+    <div class="border p-3">
+        {{ blog.content | safe }}
+    </div>
+
+    <a href="{{ url_for('blog.create_form') }}" class="btn btn-secondary mt-3">Edit</a>
+{% endblock %}
+

@@ -1,86 +1,318 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard{% endblock %}
+
 {% block content %}
-<h1>🛠 Admin Dashboard</h1>
-<p>Welcome, admin! Manage books submitted by authors below.</p>
+<style>
+  /* Layout */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9f9f9;
+  }
+  .dashboard-container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .sidebar {
+    width: 20%;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    overflow-y: auto;
+  }
+  .main-content {
+    margin-left: 20%;
+    padding: 30px;
+    overflow-y: auto;
+    width: 80%;
+    background: #fff;
+    height: 100vh;
+  }
 
+  /* Profile upload */
+  .profile-upload {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .profile-upload img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #3498db;
+    margin-bottom: 10px;
+    margin-top: 80px;
+    cursor: pointer;
+  }
+  .upload-label {
+    display: inline-block;
+    background: #2980b9;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background-color 0.3s ease;
+  }
+  .upload-label:hover {
+    background: #3498db;
+  }
 
-<p><a href="{{ url_for('admin.upload_book') }}">➕ Upload a new book</a></p>
-<p><a href="{{ url_for('admin.manage_books') }}">🏢 Manage Books</a></p>
- <p><a href="{{ url_for('blog.create') }}">✍️ Write a Blog</a></p>
+  /* Sidebar nav links */
+  .sidebar-nav a {
+    display: block;
+    color: #ecf0f1;
+    padding: 12px 10px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  .sidebar-nav a:hover,
+  .sidebar-nav a.active {
+    background-color: #34495e;
+  }
 
-<hr>
+  /* Dashboard stats cards */
+  .dashboard-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+  .stat-card {
+    flex: 1;
+    background-color: #3498db;
+    color: white;
+    padding: 25px 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.3rem;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  .stat-card:hover {
+    background-color: #2980b9;
+  }
 
+  /* Table styling */
+  .styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .styled-table th, .styled-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  .styled-table thead {
+    background-color: #3498db;
+    color: #fff;
+    font-weight: bold;
+  }
+  .styled-table tbody tr:hover {
+    background-color: #f1f1f1;
+  }
 
+  /* Inline form for delete buttons */
+  .inline-form {
+    display: inline;
+  }
+  .inline-form button {
+    background: none;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .inline-form button:hover {
+    text-decoration: underline;
+  }
 
-<h2>📚 All Books</h2>
-<table border="1" cellpadding="10">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Approved</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+  /* Actions links */
+  .action-approve {
+    color: #27ae60;
+    margin-right: 10px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .action-approve:hover {
+    text-decoration: underline;
+  }
+  .action-edit {
+    color: #2980b9;
+    margin-right: 10px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .action-edit:hover {
+    text-decoration: underline;
+  }
 
-    <tbody>
-        {% for book in books %}
-        <tr>
-            <td>{{ book.title }}</td>
-            <td>{{ book.author }}</td>
-            <td>{{ '✅' if book.is_approved else '❌' }}</td>
-            <td>
-                {% if not book.is_approved %}
-                    <a href="{{ url_for('admin.approve_book', book_id=str(book._id)) }}">✔ Approve</a>
-                {% endif %}
-                <a href="{{ url_for('admin.edit_book', book_id=str(book._id)) }}">✏ Edit</a>
-                <!-- templates/admin/dashboard.html -->
+  /* Book lists */
+  .book-list {
+    list-style: none;
+    padding-left: 0;
+  }
+  .book-list li {
+    background: white;
+    margin-bottom: 12px;
+    padding: 12px 15px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+  }
+  .book-list a {
+    margin-right: 8px;
+    color: #2980b9;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .book-list a:hover {
+    text-decoration: underline;
+  }
 
-<form action="{{ url_for('admin.delete_book', book_id=book._id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this book? This action cannot be undone.');" style="display:inline;">
-    <button type="submit" style="color: red;">🗑 Delete</button>
-</form>
+  /* Loading spinner */
+  #loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 10px;
+  }
+</style>
 
+<div class="dashboard-container">
+  <aside class="sidebar" aria-label="Admin Sidebar Navigation">
+    <div class="profile-upload">
+      <img id="profile-img" src="{{ url_for('static', filename='images/default-profile.png') }}" alt="Admin Profile Picture" title="Click to upload profile picture" tabindex="0" role="button" aria-label="Upload profile picture">
+      <input type="file" id="profile-upload-input" accept="image/*" hidden>
+      <label for="profile-upload-input" class="upload-label" tabindex="0">Upload Profile Picture</label>
+    </div>
+    <nav class="sidebar-nav" role="navigation" aria-label="Admin dashboard menu">
+      <a href="{{ url_for('admin.upload') }}">➕ Upload a new book</a>
+      <a href="{{ url_for('admin.manage_books') }}">📚 Manage Books</a>
+      <a href="{{ url_for('admin.manage_users') }}">👥 Manage Users</a>
+      <a href="{{ url_for('admin.manage_comments') }}">💬 Manage Comments</a>
+      <a href="{{ url_for('admin.blog') }}">✍️ Write a Blog</a>
+      <a href="{{ url_for('admin.view_messages') }}">📥 View User Messages</a>
+    </nav>
+  </aside>
 
-            </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="4">No books found.</td></tr>
-        {% endfor %}
-    
-    </tbody>
-</table>
+  <main id="main-content" class="main-content" tabindex="0" aria-live="polite">
+  {% block main %}
+    <h1>🛠 Admin Dashboard</h1>
+    <p>Welcome, {{ current_user.username if current_user else "admin" }}! Use the sidebar to manage all platform activity.</p>
+    <hr>
 
-<h2>📕 Pending Books</h2>
-{% if pending_books %}
-    <ul>
-        {% for book in pending_books %}
-            <li>
-                <strong>{{ book.title }}</strong> by {{ book.author }} <br>
-                <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 View File</a> |
-                <a href="{{ url_for('admin.approve_book', book_id=book._id) }}">✅ Approve</a> |
-                <a href="{{ url_for('admin.delete_book', book_id=book._id) }}">❌ Delete</a>
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No pending books.</p>
-{% endif %}
+    <div class="dashboard-stats" aria-label="Dashboard statistics summary">
+      <div class="stat-card" role="region" aria-labelledby="total-users-label" tabindex="0">
+        <div id="total-users-label">Total Users</div>
+        <div>{{ total_users or 'N/A' }}</div>
+      </div>
+      <div class="stat-card" role="region" aria-labelledby="total-books-label" tabindex="0">
+        <div id="total-books-label">Total Books</div>
+        <div>{{ total_books or 'N/A' }}</div>
+      </div>
+      <div class="stat-card" role="region" aria-labelledby="pending-books-label" tabindex="0">
+        <div id="pending-books-label">Pending Books</div>
+        <div>{{ pending_books or 'N/A' }}</div>
+      </div>
+    </div>
 
-<hr>
+  {% endblock %}
+  </main>
+</div>
 
-<h2>✅ Approved Books</h2>
-{% if approved_books %}
-    <ul>
-        {% for book in approved_books %}
-            <li>
-                <strong>{{ book.title }}</strong> by {{ book.author }} <br>
-                <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a> |
-                <a href="{{ url_for('admin.delete_book', book_id=book._id) }}">❌ Delete</a>
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No approved books yet.</p>
-{% endif %}
+<div id="loading-spinner" aria-live="assertive" aria-atomic="true">Loading...</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Profile image preview
+    const uploadInput = document.getElementById('profile-upload-input');
+    const profileImg = document.getElementById('profile-img');
+
+    uploadInput.addEventListener('change', () => {
+      const file = uploadInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => profileImg.src = e.target.result;
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Clicking on profile image triggers file input
+    profileImg.addEventListener('click', () => uploadInput.click());
+    profileImg.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        uploadInput.click();
+      }
+    });
+
+    // Sidebar navigation dynamic loading
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+    const mainContent = document.getElementById('main-content');
+    const loadingSpinner = document.getElementById('loading-spinner');
+
+    async function loadContent(url, linkClicked) {
+      try {
+        loadingSpinner.style.display = 'block';
+        const response = await fetch(url, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (!response.ok) throw new Error('Network response was not OK');
+
+        const htmlText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        const newContent = doc.getElementById('main-content');
+
+        if (newContent) {
+          mainContent.innerHTML = newContent.innerHTML;
+
+          // Update active class on sidebar links
+          sidebarLinks.forEach(a => a.classList.remove('active'));
+          if (linkClicked) linkClicked.classList.add('active');
+
+          // Update browser URL without reload
+          history.pushState(null, '', url);
+        } else {
+          window.location.href = url; // fallback full load
+        }
+      } catch (error) {
+        console.error('Failed to load page content:', error);
+        window.location.href = url; // fallback full load
+      } finally {
+        loadingSpinner.style.display = 'none';
+      }
+    }
+
+    sidebarLinks.forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        loadContent(link.href, link);
+      });
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', () => {
+      loadContent(location.href);
+    });
+  });
+</script>
+
 {% endblock %}

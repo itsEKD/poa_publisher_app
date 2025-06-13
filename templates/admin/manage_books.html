@@ -1,37 +1,140 @@
-{% extends "base.html" %}
-{% block title %}Manage Books{% endblock %}
+{% extends "admin/dashboard.html" %}
+{% block main %}
 
-{% block content %}
-<h2>📕 Pending Books</h2>
-{% if pending_books %}
-    <ul>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="container py-4">
+
+  <h2 class="mb-3">📕 Pending Books</h2>
+
+  {% if pending_books %}
+  <div class="table-responsive mb-5">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-warning">
+        <tr>
+          <th>Cover</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Category</th>
+          <th>Tags</th>
+          <th>Price</th>
+          <th>Uploaded At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
         {% for book in pending_books %}
-            <li>
-                <strong>{{ book.title }}</strong> by {{ book.author }} <br>
-                <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 View File</a> |
-                <a href="{{ url_for('admin.approve_book', book_id=book._id) }}">✅ Approve</a> |
-                <a href="{{ url_for('admin.delete_book', book_id=book._id) }}">❌ Delete</a>
-            </li>
+        <tr>
+          <td>
+            {% if book.cover_image %}
+              <img src="{{ url_for('static', filename=book.cover_image.replace('static/', '')) }}" style="height: 80px;" class="rounded shadow-sm">
+            {% else %}
+              <span class="text-muted">No image</span>
+            {% endif %}
+          </td>
+          <td>{{ book.title }}</td>
+          <td>{{ book.author_name }}</td>
+          <td>{{ book.category }}</td>
+          <td>{{ book.tags | join(', ') }}</td>
+          <td>
+            {% if book.get('is_free') %}
+              Free
+            {% elif book.get('price') %}
+              ${{ "%.2f"|format(book.price|float) }}
+            {% else %}
+              <span class="text-muted">N/A</span>
+            {% endif %}
+          </td>
+          <td>{{ book.uploaded_at }}</td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              {% if book.pdf_path %}
+                <a class="btn btn-sm btn-primary" href="{{ url_for('static', filename=book.pdf_path.replace('static/', '')) }}" target="_blank">📥 View PDF</a>
+              {% else %}
+                <span class="text-muted">No PDF</span>
+              {% endif %}
+              <form action="{{ url_for('admin.approve_book', book_id=book._id) }}" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-sm btn-success">✅ Approve</button>
+              </form>
+              <form action="{{ url_for('admin.delete_book', book_id=book._id) }}" method="POST" onsubmit="return confirm('Delete this book?');">
+                <button type="submit" class="btn btn-sm btn-danger">❌ Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
         {% endfor %}
-    </ul>
-{% else %}
-    <p>No pending books.</p>
-{% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted">No pending books.</p>
+  {% endif %}
 
-<hr>
+  <h2 class="mb-3">✅ Approved Books</h2>
 
-<h2>✅ Approved Books</h2>
-{% if approved_books %}
-    <ul>
+  {% if approved_books %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-success">
+        <tr>
+          <th>Cover</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Category</th>
+          <th>Tags</th>
+          <th>Price</th>
+          <th>Uploaded At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
         {% for book in approved_books %}
-            <li>
-                <strong>{{ book.title }}</strong> by {{ book.author }} <br>
-                <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a> |
-                <a href="{{ url_for('admin.delete_book', book_id=book._id) }}">❌ Delete</a>
-            </li>
+        <tr>
+          <td>
+            {% if book.cover_image %}
+              <img src="{{ url_for('static', filename=book.cover_image.replace('static/', '')) }}" style="height: 80px;" class="rounded shadow-sm">
+            {% else %}
+              <span class="text-muted">No image</span>
+            {% endif %}
+          </td>
+          <td>{{ book.title }}</td>
+          <td>{{ book.author_name }}</td>
+          <td>{{ book.category }}</td>
+          <td>{{ book.tags | join(', ') }}</td>
+          <td>
+            {% if book.get('is_free') %}
+              Free
+            {% elif book.get('price') %}
+              ${{ "%.2f"|format(book.price|float) }}
+            {% else %}
+              <span class="text-muted">N/A</span>
+            {% endif %}
+          </td>
+          <td>{{ book.uploaded_at }}</td>
+          <td>
+            <div class="d-flex flex-column gap-1">
+              {% if book.pdf_path %}
+                <a class="btn btn-sm btn-primary" href="{{ url_for('static', filename=book.pdf_path.replace('static/', '')) }}" target="_blank">📥 Download PDF</a>
+              {% else %}
+                <span class="text-muted">No PDF</span>
+              {% endif %}
+              <form action="{{ url_for('admin.delete_book', book_id=book._id) }}" method="POST" onsubmit="return confirm('Delete this book?');">
+                <button type="submit" class="btn btn-sm btn-danger">❌ Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
         {% endfor %}
-    </ul>
-{% else %}
-    <p>No approved books yet.</p>
-{% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="text-muted">No approved books yet.</p>
+  {% endif %}
+</div>
+
+<form action="{{ url_for('admin.normalize_books') }}" method="POST" onsubmit="return confirm('Run normalization on all books? This cannot be undone.')">
+  <button type="submit" class="btn btn-warning mb-4">🛠️ Normalize Book Data</button>
+</form>
+
 {% endblock %}

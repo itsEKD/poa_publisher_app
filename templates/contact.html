@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - POA Publishers{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background: url("{{ url_for('static', filename='css/images/bg3.jpg') }}") no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+  }
+
+  .contact-overlay {
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 60px 30px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1200px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  }
+
+  .contact-heading {
+    width: 100%;
+    font-size: 3rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 40px;
+    animation: typing 4s steps(30, end), blink .75s step-end infinite;
+    white-space: nowrap;
+    overflow: hidden;
+    border-right: 3px solid #fff;
+  }
+
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+
+  @keyframes blink {
+    50% { border-color: transparent }
+  }
+
+  .contact-left, .contact-right {
+    flex: 1 1 45%;
+    padding: 20px;
+    min-width: 280px;
+  }
+
+  .contact-left h4, .contact-left p {
+    margin-bottom: 15px;
+  }
+
+  .social-links a {
+    color: #0d6efd;
+    font-size: 1.2rem;
+    margin-right: 15px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+  }
+
+  .btn-submit {
+    background-color: #0d6efd;
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+  }
+
+  .btn-submit:hover {
+    background-color: #0b5ed7;
+  }
+</style>
+
+<div class="contact-overlay">
+  <h1 class="contact-heading">Contact POA Publishers</h1>
+
+  <!-- Left: Company Contact Info -->
+  <div class="contact-left">
+    <h4>📍 Private-Bag 254</h4>
+    <h4>📍 2828</h4>
+    <p>POA Publishers HQ<br>Nairobi, Kenya</p>
+
+    <h4>📧 Email</h4>
+    <p>info@poapublishers.org</p>
+    <p>pk@poapublishers.org</p>
+    <p>ekd@poapublishers.org</p>
+
+    <h4>📞 Phone</h4>
+    <p>+254 712 345 678</p>
+    <p>+254 745 058 404</p>
+    <p>+254 745 053 905</p>
+
+    <h4>🔗 Connect With Us</h4>
+    <div class="social-links">
+      <a href="#"><i class="fab fa-facebook-f"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+      <a href="#"><i class="fab fa-instagram"></i></a>
+    </div>
+  </div>
+
+  <!-- Right: Form -->
+  <div class="contact-right">
+
+    <form method="POST" action="{{ url_for('shop.contact') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" class="form-control" name="name" placeholder="Your Name" required>
+            <input type="email" class="form-control" name="email" placeholder="Your Email" required>
+            <input type="text" class="form-control" name="subject" placeholder="Subject" required>
+            <textarea class="form-control" name="message" rows="5" placeholder="Your Message..." required></textarea>
+            <button type="submit" class="btn-submit">Send Message</button>
+    </form>
+
+
+  </div>
+</div>
+{% endblock %}

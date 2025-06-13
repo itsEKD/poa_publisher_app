@@ -1,41 +1,64 @@
-{% extends "base.html" %}
-{% block title %}All Books - POA Publishers{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Books | POA Publishers{% endblock %}
 
 {% block content %}
-<h2>📚 All Available Books</h2>
+<div class="container my-5">
+  <h2 class="mb-4 text-center">Explore Our Collection</h2>
 
-<!-- 🔍 Search + Filter Form -->
-<form method="GET" style="margin-bottom: 20px;">
-    <input type="text" name="q" placeholder="Search title or author" value="{{ request.args.get('q', '') }}" style="padding: 8px;">
-    <select name="category" style="padding: 8px;">
-        <option value="">All Categories</option>
-        {% for cat in categories %}
-            <option value="{{ cat }}" {% if request.args.get('category') == cat %}selected{% endif %}>{{ cat }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit" style="padding: 8px;">🔎 Search</button>
-</form>
+  <!-- 🔍 Search Bar -->
+  <form method="GET" action="{{ url_for('books.view_books') }}" class="row mb-4">
+    <div class="col-md-10">
+      <input type="text" name="q" class="form-control" placeholder="Search books by title or author..." value="{{ request.args.get('q', '') }}">
+    </div>
+    <div class="col-md-2 text-end">
+      <button type="submit" class="btn btn-outline-primary w-100">Search</button>
+    </div>
+  </form>
 
-  <h1>Available Books</h1>
-
-  <div class="book-list">
+  <!-- 📚 Book Cards -->
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
     {% for book in books %}
-      <div class="book-item" style="border:1px solid #ccc; padding:15px; margin-bottom:10px;">
-        <h3>{{ book.title }}</h3>
-        <p>{{ book.description }}</p>
-        <p><strong>Price:</strong> ${{ book.price }}</p>
-
-        {% if book._id|string in purchased_ids %}
-          <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a>
-        {% else %}
-          <form action="{{ url_for('shop.buy_book', book_id=book._id) }}" method="post">
-            <button type="submit">💳 Buy for ${{ book.price }}</button>
-          </form>
-        {% endif %}
+    <div class="col">
+      <div class="card h-100 shadow-sm border-0 rounded-4 book-tile hover-shadow">
+        <img src="{{ url_for('static', filename='uploads/book_covers/' ~ book.cover_image) }}"
+             class="card-img-top rounded-top-4" alt="Cover of {{ book.title }}" style="height: 300px; object-fit: cover;">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ book.title }}</h5>
+          <p class="card-text text-muted">by {{ book.author }}</p>
+          <p class="mt-auto fw-bold">
+            {% if book.price == 0 %}
+              <span class="text-success">Free</span>
+            {% else %}
+              ${{ '%.2f'|format(book.price) }}
+            {% endif %}
+          </p>
+        </div>
+        <div class="card-footer bg-white border-0 text-center pb-4">
+          {% if user_logged_in %}
+            {% if book.price == 0 %}
+              <a href="{{ url_for('shop.download_book', book_id=str(book._id)) }}"
+                 class="btn btn-success w-75">Download</a>
+            {% else %}
+              {% if str(book._id) in purchased_ids %}
+                <a href="{{ url_for('shop.download_book', book_id=str(book._id)) }}"
+                   class="btn btn-success w-75">Download</a>
+              {% else %}
+                <form action="{{ url_for('shop.buy_book', book_id=str(book._id)) }}" method="POST">
+                  <button type="submit" class="btn btn-primary w-75">Buy Now</button>
+                </form>
+              {% endif %}
+            {% endif %}
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary w-75">Login to Access</a>
+          {% endif %}
+        </div>
       </div>
-    {% else %}
-      <p>No books available at the moment.</p>
+    </div>
     {% endfor %}
   </div>
-{% endblock %}
 
+  {% if not books %}
+    <p class="text-center text-muted mt-4">No books found.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "admin/dashboard.html" %}
+{% block main %}
+<h2>💬 Manage Comments</h2>
+<table class="styled-table">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Book Title</th>
+      <th>User</th>
+      <th>Content</th>
+      <th>Submitted</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for comment in comments %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ comment.get('book_title', 'Unknown') }}</td>
+      <td>{{ comment.get('user_email', 'Anonymous') }}</td>
+      <td>{{ comment.get('content', '')[:50] }}...</td>
+      <td>
+        {{ comment.created_at.strftime('%Y-%m-%d %H:%M') if comment.created_at else 'N/A' }}
+      </td>
+      <td>
+  <a href="{{ url_for('admin.view_single_comment', comment_id=comment._id) }}" class="action-edit">Reply</a>
+  <form method="POST" action="{{ url_for('admin.delete_comment', comment_id=comment._id) }}" class="inline-form" onsubmit="return confirm('Delete this comment?');">
+    <button type="submit">Delete</button>
+  </form>
+</td>
+
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="6">No comments to display.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block main %}
+
+<!-- Quill CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+<div class="container py-4">
+  <h2 class="mb-4"><i class="bi bi-journal-plus"></i> Create a Blog Post</h2>
+
+  <form method="POST" action="{{ url_for('blog.create') }}" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <!-- Title -->
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input type="text" name="title" id="title" class="form-control" placeholder="Enter title" required>
+      <div class="invalid-feedback">Title is required.</div>
+    </div>
+
+    <!-- Category -->
+    <div class="mb-3">
+      <label for="category" class="form-label">Category</label>
+      <select name="category" id="category" class="form-select" required>
+        <option value="">-- Choose Category --</option>
+        <option value="authorship">Authorship</option>
+        <option value="mentorship">Mentorship</option>
+        <option value="scholarships">Scholarships</option>
+        <option value="projects">Projects</option>
+        <option value="politics">Politics</option>
+        <option value="sports">Sports</option>
+        <option value="story">Story</option>
+      </select>
+      <div class="invalid-feedback">Please select a category.</div>
+    </div>
+
+    <!-- Summary -->
+    <div class="mb-3">
+      <label for="summary" class="form-label">Summary</label>
+      <textarea name="summary" id="summary" class="form-control" rows="3" placeholder="Write a short summary..."></textarea>
+    </div>
+
+    <!-- Tags -->
+    <div class="mb-3">
+      <label for="tags" class="form-label">Tags (comma-separated)</label>
+      <input type="text" name="tags" id="tags" class="form-control" placeholder="e.g. writing, publishing, books">
+    </div>
+
+    <!-- Cover Image -->
+    <div class="mb-3">
+      <label for="cover_image" class="form-label">Cover Image</label>
+      <input type="file" name="cover_image" id="cover_image" class="form-control">
+    </div>
+
+    <!-- Rich Text Content -->
+    <div class="mb-3">
+      <label class="form-label">Content</label>
+      <div id="editor" style="height: 300px;"></div>
+      <textarea name="content" id="content" style="display:none;"></textarea>
+    </div>
+
+    <!-- Submit Buttons -->
+    <button type="submit" name="action" value="preview" class="btn btn-secondary">Preview</button>
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-upload"></i> Publish
+    </button>
+  </form>
+</div>
+
+<!-- Quill JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+  // Initialize Quill
+  const quill = new Quill('#editor', {
+    theme: 'snow',
+    placeholder: 'Write your blog content here...',
+    modules: {
+      toolbar: [
+        [{ header: [1, 2, false] }],
+        ['bold', 'italic', 'underline'],
+        ['link', 'blockquote', 'code-block'],
+        [{ list: 'ordered' }, { list: 'bullet' }]
+      ]
+    }
+  });
+
+  // On form submission, transfer Quill content to hidden textarea
+  document.querySelector("form").addEventListener("submit", function () {
+    document.querySelector("#content").value = quill.root.innerHTML;
+  });
+
+  // Bootstrap validation
+  (() => {
+    'use strict';
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
+</script>
+
+{% endblock %}

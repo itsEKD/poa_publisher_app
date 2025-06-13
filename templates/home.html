@@ -188,63 +188,27 @@
     {% endif %}
   </div>
 </div>
-
-<!-- Featured Books -->
 <section>
-    <h2>🌟 Featured Books</h2>
-    <div class="book-section">
-        {% for book in featured_books %}
-            <div class="book-card-container">
-                <div class="book-card">
-                    <h3>{{ book.title }}</h3>
-                    <p><strong>Author:</strong> {{ book.author }}</p>
-                    <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a>
-                </div>
-            </div>
+  <h2 class="mt-5">🌟 Featured Books</h2>
+  <div class="book-section">
+    {% for book in books %}
+    <div class="book-card-container">
+      <div class="book-card">
+         <img src="{{ url_for('static', filename=book.cover_image.replace('static/', '')) }}"
+             class="card-img-top rounded-top-4" alt="Cover of {{ book.title }}" style="height: 300px; object-fit: cover;">
+        <h3>{{ book.title }}</h3>
+        <p class="text-muted">by {{ book.author }}</p>
+        {% if book.price|float == 0 %}
+          <p class="text-success fw-bold">Free</p>
         {% else %}
-            <p>No featured books available.</p>
-        {% endfor %}
+          <p class="fw-bold">${{ '%.2f'|format(book.price|float) }}</p>
+        {% endif %}
+        <a href="{{ url_for('books.view_books') }}" class="btn btn-sm btn-outline-primary mt-2">See All Books</a>
+      </div>
     </div>
+    {% endfor %}
+  </div>
 </section>
 
-<hr>
-
-<!-- Bestsellers -->
-<section>
-    <h2>🔥 Bestsellers</h2>
-    <div class="book-section">
-        {% for book in bestsellers %}
-            <div class="book-card-container">
-                <div class="book-card">
-                    <h3>{{ book.title }}</h3>
-                    <p><strong>Author:</strong> {{ book.author }}</p>
-                    <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a>
-                </div>
-            </div>
-        {% else %}
-            <p>No bestsellers at the moment.</p>
-        {% endfor %}
-    </div>
-</section>
-
-<hr>
-
-<!-- Recently Added -->
-<section>
-    <h2>🆕 Recently Added</h2>
-    <div class="book-section">
-        {% for book in recent_books %}
-            <div class="book-card-container">
-                <div class="book-card">
-                    <h3>{{ book.title }}</h3>
-                    <p><strong>Author:</strong> {{ book.author }}</p>
-                    <a href="{{ url_for('uploaded_file', filename=book.file_path) }}">📥 Download</a>
-                </div>
-            </div>
-        {% else %}
-            <p>No new books yet.</p>
-        {% endfor %}
-    </div>
-</section>
 
 {% endblock %}

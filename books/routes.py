@@ -1,24 +1,39 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, session
+from bson.objectid import ObjectId
 from extensions import mongo
 
 books_bp = Blueprint('books', __name__)
 
-@books_bp.route("/books")
-def all_books():
-    search_query = request.args.get("q", "").strip()
-    category_filter = request.args.get("category", "").strip()
+@books_bp.route('/books')
+def view_books():
+    query = request.args.get("q", "").strip()
+    category = request.args.get("category", "").strip()
 
-    query = {"approved": True}
+    filters = {'status': 'approved'}
 
-    if search_query:
-        query["$or"] = [
-            {"title": {"$regex": search_query, "$options": "i"}},
-            {"author": {"$regex": search_query, "$options": "i"}}
-        ]
+    if query:
+        filters['title'] = {'$regex': query, '$options': 'i'}
 
-    if category_filter:
-        query["category"] = category_filter
+    if category:
+        filters['category'] = category
 
-    books = list(mongo.db.books.find(query))
-    categories = mongo.db.books.distinct("category")
-    return render_template("books/all_books.html", books=books, categories=categories)
+    books = list(mongo.db.books.find(filters))
+
+    user_id = session.get("user_id")
+    purchased_ids = []
+
+    if user_id:
+        user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+        if user:
+            purchased_ids = [str(book_id) for book_id in user.get("purchased_books", [])]
+
+    return render_template(
+        'shop/view_books.html',
+        books=books,
+        user_logged_in=bool(user_id),
+        purchased_ids=purchased_ids,
+        search_query=query,
+        selected_category=category,
+        str=str
+    )
+    #return render_template('shop/view_books.html', books=books, user_logged_in=user_logged_in, purchased_ids=purchased_ids, str=str)

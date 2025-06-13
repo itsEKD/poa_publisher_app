@@ -15,7 +15,8 @@
     <input type="file" name="pdf_file" accept="application/pdf"><br><br>
 
     {% if book.filename %}
-        <p>Current File: <a href="{{ url_for('uploaded_file', filename=book.filename) }}" target="_blank">{{ book.filename }}</a></p>
+        <p>Current File: <a href="{{ url_for('uploaded_file', filename=book.file_path) }}" target="_blank">{{ book.filename }}</a></p>
+                                    
     {% endif %}
 
     <button type="submit">💾 Save Changes</button>
