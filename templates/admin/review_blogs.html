@@ -1,0 +1,39 @@
+{% extends "admin/dashboard.html" %}
+{% block main %}
+<div class="container py-4">
+  <h2 class="mb-4">📝 Pending Blog Posts</h2>
+
+  {% if blogs %}
+    <div class="row g-4">
+      {% for blog in blogs %}
+        <div class="col-md-6">
+          <div class="card shadow-sm border">
+            {% if blog.cover_image %}
+              <img src="/{{ blog.cover_image }}" class="card-img-top" style="max-height: 200px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body">
+              <h5 class="card-title">{{ blog.title }}</h5>
+              <p class="card-text text-muted">{{ blog.summary }}</p>
+              <p class="small mb-1"><strong>Author:</strong> {{ blog.author_email or "Unknown" }}</p>
+              <p class="small mb-3"><strong>Category:</strong> {{ blog.category }}</p>
+              <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin.preview_blogs', blog_id=blog._id) }}" class="btn btn-sm btn-outline-info">
+                  👁 Preview
+                </a>
+                <form method="POST" action="{{ url_for('admin.approve_blog', blog_id=blog._id) }}">
+                  <button class="btn btn-sm btn-success">✅ Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('admin.reject_blog', blog_id=blog._id) }}">
+                  <button class="btn btn-sm btn-danger">❌ Reject</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No pending blogs.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -37,21 +37,12 @@ def is_ajax():
 @role_required(ROLE_AUTHOR)
 def dashboard():
     db = current_app.db
-    user_email = session.get("user_email")
-    user_id = session.get("user_id")  # This should be a string ObjectId
+    user_id = session.get("user_id")
 
-    # Counts
     total_users = db.users.count_documents({})
     total_books = db.books.count_documents({})
     pending_books_count = db.books.count_documents({"approved": False})
-
-    # ✅ Your pending books (uploaded by you and not yet approved)
-    my_pending_books = db.books.count_documents({
-        "uploaded_by": ObjectId(user_id),
-        "approved": False
-    })
-
-    # ✅ All books uploaded by you
+    my_pending_books = db.books.count_documents({"uploaded_by": ObjectId(user_id), "approved": False})
     books = list(db.books.find({"uploaded_by": ObjectId(user_id)}))
 
     return render_template("author/dashboard.html",
@@ -60,7 +51,6 @@ def dashboard():
                            pending_books=pending_books_count,
                            my_pending_books=my_pending_books,
                            books=books)
-
 
 # --- Route for "Manage Books" (My Uploaded Books) ---
 @author_bp.route("/manage_my_books")
@@ -120,42 +110,44 @@ def upload_page(): # Renamed from 'upload' to 'upload_page' for clarity, as 'upl
 @csrf.exempt
 def upload():
     db = current_app.db
+
     if request.method == 'POST':
         title = request.form.get('title')
-        author = request.form.get('author')  # OR pull from session user
         description = request.form.get('description')
         category = request.form.get('category')
         tags = request.form.get('tags', '').split(',')
         price = float(request.form.get('price') or 0.0)
         is_free = 'is_free' in request.form
-
         if is_free:
             price = 0.0
 
         pdf_file = request.files.get('pdf_file')
         cover_image = request.files.get('cover_image')
 
-        # Validate required PDF
         if not pdf_file or pdf_file.filename == '':
             flash('PDF file is required.', 'danger')
             return redirect(url_for('author.upload'))
 
-        # Save PDF file
-        pdf_filename = secure_filename(pdf_file.filename)
+        os.makedirs(UPLOAD_FOLDER_PDF, exist_ok=True)
+        os.makedirs(UPLOAD_FOLDER_COVER, exist_ok=True)
+
+        pdf_filename = f"{uuid.uuid4().hex}_{secure_filename(pdf_file.filename)}"
         pdf_path = os.path.join(UPLOAD_FOLDER_PDF, pdf_filename)
-        pdf_file.save(pdf_path)
+        pdf_file.save(os.path.join(current_app.root_path, pdf_path))
 
-        # Save cover image if provided
-        cover_path = ''
+        cover_path = "static/default_cover.jpg"
         if cover_image and cover_image.filename != '':
-            cover_filename = secure_filename(cover_image.filename)
-            cover_path = os.path.join(UPLOAD_FOLDER_COVER, cover_filename)
-            cover_image.save(cover_path)
+            if allowed_file(cover_image.filename, ALLOWED_IMAGE_EXTENSIONS):
+                cover_filename = f"{uuid.uuid4().hex}_{secure_filename(cover_image.filename)}"
+                cover_path = os.path.join(UPLOAD_FOLDER_COVER, cover_filename)
+                cover_image.save(os.path.join(current_app.root_path, cover_path))
+            else:
+                flash("Invalid image file type.", "danger")
+                return redirect(url_for("author.upload"))
 
-        # Fallback to session's user info
         user_id = session.get('user_id')
         user = db.users.find_one({"_id": ObjectId(user_id)})
-        author_name = user.get('name') if user else author
+        author_name = user.get('name', 'Unknown')
 
         book_doc = {
             "title": title,
@@ -166,12 +158,12 @@ def upload():
             "price": price,
             "is_free": is_free,
             "pdf_path": pdf_path,
-            "cover_image": cover_path or "static/default_cover.jpg",
-            "uploaded_by": ObjectId(user_id),          # Link to user _id
-            "author_id": ObjectId(user_id),            # Explicitly labeled for clarity
-            "author_email": session.get("user_email"), # Optional: useful for quick filtering
+            "cover_image": cover_path,
+            "uploaded_by": ObjectId(user_id),
+            "author_id": ObjectId(user_id),
+            "author_email": session.get("user_email"),
             "status": "pending",
-            "approved": False,                         # Ensure approval is tracked
+            "approved": False,
             "created_at": datetime.utcnow(),
             "ratings": [],
             "downloads": 0
@@ -181,7 +173,13 @@ def upload():
         flash("Book uploaded successfully and is pending approval.", "success")
         return redirect(url_for('author.manage_my_books'))
 
-    return render_template("author/upload.html")
+    # Render upload form inside dashboard with partial content
+    return render_template("author/dashboard.html",
+                           content_template="author/upload.html",
+                           editing=False,
+                           form_action=url_for('author.upload'))
+
+
 
 
 # --- Route for "Manage Comments" ---
@@ -189,16 +187,35 @@ def upload():
 @role_required(ROLE_AUTHOR)
 def manage_comments():
     db = current_app.db
-    # You might want to filter comments relevant to the author's books
-    # For simplicity, showing all comments for now, adapt as needed
-    comments = list(db.comments.find({}))
-    if is_ajax():
+    author_email = session.get("user_email")
+
+    # Get the author's books
+    books = list(db.books.find({"author_email": author_email}))
+    book_ids = [book["_id"] for book in books]
+
+    # Fetch comments for the author's books only
+    comments_cursor = db.comments.find({"book_id": {"$in": book_ids}}).sort("created_at", -1)
+    comments = []
+    for comment in comments_cursor:
+        # Match book to comment
+        book = next((b for b in books if b["_id"] == comment["book_id"]), None)
+        comments.append({
+            "book_title": book["title"] if book else "Unknown",
+            "comment_text": comment.get("text", ""),
+            "commenter_email": comment.get("email", "Anonymous"),
+            "created_at": comment.get("created_at"),
+            "_id": comment["_id"]
+        })
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return render_template("author/manage_comments.html", comments=comments)
     else:
-        # Fetch initial stats for dashboard base
         total_users = db.users.count_documents({})
         total_books = db.books.count_documents({})
-        pending_books_count = db.books.count_documents({"author_email": session.get("user_email"), "approved": False})
+        pending_books_count = db.books.count_documents({
+            "author_email": author_email,
+            "approved": False
+        })
         return render_template("author/dashboard.html",
                                content_template="author/manage_comments.html",
                                total_users=total_users,
@@ -300,28 +317,38 @@ def create_blog_post():
 @role_required(ROLE_AUTHOR)
 def edit_book(book_id):
     db = current_app.db
-    # Ensure only author can edit their own book
-    book = db.books.find_one({"_id": ObjectId(book_id), "author_email": session.get("user_email")})
+    user_email = session.get("user_email")
+    book = db.books.find_one({"_id": ObjectId(book_id), "author_email": user_email})
+    
     if not book:
         flash("Book not found or unauthorized.", "danger")
         return redirect(url_for('author.manage_my_books'))
 
     if request.method == "POST":
-        # Process form data and update book in DB
+        # Process the form data
         updated_data = {
             "title": request.form.get('title'),
+            "author": request.form.get('author'),
             "description": request.form.get('description'),
             "category": request.form.get('category'),
-            "price": float(request.form.get('price', 0)),
+            "price": float(request.form.get('price', 0)) if 'is_free' not in request.form else 0.0,
             "is_free": 'is_free' in request.form,
             "tags": [tag.strip() for tag in request.form.get('tags', '').split(',') if tag.strip()]
         }
+
+        # Optional: handle file uploads here...
+
         db.books.update_one({"_id": ObjectId(book_id)}, {"$set": updated_data})
         flash("Book updated successfully!", "success")
         return redirect(url_for('author.manage_my_books'))
 
-    # For GET request, render the edit form
-    return render_template("author/edit_book.html", book=book)
+    # GET request — render the shared upload template in dashboard
+    return render_template("author/dashboard.html",
+                           content_template="author/upload.html",
+                           editing=True,
+                           book=book,
+                           form_action=url_for("author.edit_book", book_id=book_id))
+
 
 @author_bp.route("/delete_book/<book_id>", methods=["POST"])
 @role_required(ROLE_AUTHOR)
@@ -379,3 +406,95 @@ def view_messages():
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render_template('admin/view_messages_partial.html', messages=messages)
     return render_template('admin/view_messages.html', messages=messages)
+
+
+# DELETE COMMENT
+@author_bp.route('/comments/delete/<comment_id>', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    db = current_app.db
+    try:
+        result = db.comments.delete_one({'_id': ObjectId(comment_id)})
+        if is_ajax():
+            return jsonify(success=bool(result.deleted_count))
+        flash("Comment deleted.", "success")
+    except Exception as e:
+        if is_ajax():
+            return jsonify(success=False, message=str(e))
+        flash("Failed to delete comment.", "danger")
+    return redirect(url_for('author.manage_comments'))
+
+# REPLY TO COMMENT
+@author_bp.route('/comments/reply/<comment_id>', methods=['POST'])
+@login_required
+def reply_comment(comment_id):
+    db = current_app.db
+    reply_text = request.form.get('reply_text', '').strip()
+    if not reply_text:
+        if is_ajax():
+            return jsonify(success=False, message="Reply text cannot be empty.")
+        flash("Reply text is required.", "warning")
+        return redirect(url_for('author.manage_comments'))
+
+    reply_data = {
+        "text": reply_text,
+        "created_at": datetime.utcnow(),
+        "author_email": session.get("user_email")
+    }
+
+    try:
+        db.comments.update_one(
+            {"_id": ObjectId(comment_id)},
+            {"$push": {"replies": reply_data}}
+        )
+        if is_ajax():
+            return jsonify(success=True)
+        flash("Reply added.", "success")
+    except Exception as e:
+        if is_ajax():
+            return jsonify(success=False, message=str(e))
+        flash("Failed to add reply.", "danger")
+
+    return redirect(url_for('author.manage_comments'))
+
+@author_bp.route('/manage_blogs')
+@role_required(ROLE_AUTHOR)
+def manage_blogs():
+    db = current_app.db
+    user_email = session.get("user_email")
+    blogs = list(db.blogs.find({"author_email": user_email}))
+    return render_template("author/manage_blogs.html", blogs=blogs)
+
+# Delete blog
+@author_bp.route('/delete_blog/<blog_id>', methods=["POST"])
+@role_required(ROLE_AUTHOR)
+def delete_blog(blog_id):
+    db = current_app.db
+    user_email = session.get("user_email")
+    result = db.blogs.delete_one({"_id": ObjectId(blog_id), "author_email": user_email})
+    flash("Blog deleted." if result.deleted_count else "Blog not found or unauthorized.", "info")
+    return redirect(url_for("author.manage_blogs"))
+
+# Edit blog (renders the same form used for creation, pre-filled)
+@author_bp.route('/edit_blog/<blog_id>', methods=["GET", "POST"])
+@role_required(ROLE_AUTHOR)
+def edit_blog(blog_id):
+    db = current_app.db
+    blog = db.blogs.find_one({"_id": ObjectId(blog_id), "author_email": session.get("user_email")})
+    if not blog:
+        flash("Blog not found or access denied.", "danger")
+        return redirect(url_for('author.manage_blogs'))
+
+    if request.method == "POST":
+        updated = {
+            "title": request.form.get("title"),
+            "summary": request.form.get("summary"),
+            "category": request.form.get("category"),
+            "tags": [tag.strip() for tag in request.form.get("tags", "").split(",") if tag.strip()],
+            "content": request.form.get("content"),
+        }
+        db.blogs.update_one({"_id": ObjectId(blog_id)}, {"$set": updated})
+        flash("Blog updated successfully!", "success")
+        return redirect(url_for('author.manage_blogs'))
+
+    return render_template("author/upload_blog.html", blog=blog, editing=True)

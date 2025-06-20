@@ -76,6 +76,10 @@ def create():
         os.rename(temp_path, final_path)
         cover_filename = os.path.basename(final_path)
 
+    # Auto-approve if admin, otherwise mark as pending
+    user_role = session.get("user_role")
+    is_approved = user_role == ROLE_ADMIN
+
     blog_doc = {
         "title": title,
         "author_email": session.get("user_email"),
@@ -85,18 +89,22 @@ def create():
         "content": content,
         "cover_image": cover_filename,
         "created_at": datetime.utcnow(),
-        "approved": False,
+        "approved": is_approved,
         "views": 0
     }
 
     try:
         mongo.db.blogs.insert_one(blog_doc)
-        flash("🎉 Blog post created successfully! Awaiting review.", "success")
+        if is_approved:
+            flash("✅ Blog post published successfully!", "success")
+        else:
+            flash("🎉 Blog post created successfully! Awaiting admin approval.", "info")
         return redirect(url_for("blog.view_blog"))
     except Exception as e:
         current_app.logger.error(f"Error saving blog post: {e}")
         flash("Failed to save blog post.", "danger")
         return redirect(url_for("blog.create"))
+
 
 
 # ------------------------

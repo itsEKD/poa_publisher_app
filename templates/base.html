@@ -33,11 +33,6 @@
             margin-right: 0;
         }
 
-        .book-tile:hover {
-            transform: scale(1.015);
-            transition: transform 0.2s ease-in-out;
-        }
-
         .navbar-brand {
             font-weight: bold;
         }
@@ -74,9 +69,26 @@
         .toast .toast-body i {
             margin-right: 8px;
         }
+
+        /* Debug Banner */
+        #base-debug-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #ffc107;
+            padding: 5px 15px;
+            font-weight: bold;
+            color: #222;
+            z-index: 2000;
+            border-radius: 0 0 5px 0;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
+
+<!-- Debug Banner -->
+<div id="base-debug-banner">🔧 base.html loaded</div>
 
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
@@ -97,14 +109,12 @@
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('shop.about') }}">About</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('shop.contact') }}">Contact</a></li>
 
-                {% if current_user.is_authenticated and current_user.role in ['admin'] %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('blog.create') }}">✍️ Write Blog</a></li>
-                {% endif %}
-
                 {% if current_user.is_authenticated %}
                     {% if current_user.role == 'admin' %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('blog.create') }}">✍️ Write Blog</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('admin.dashboard') }}">Admin Panel</a></li>
                     {% elif current_user.role == 'author' %}
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('author.create_blog') }}">✍️ Write Blog</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('author.dashboard') }}">Author Panel</a></li>
                     {% endif %}
                     <li class="nav-item">
@@ -163,13 +173,11 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const toastElList = [].slice.call(document.querySelectorAll('.toast'));
-
         const sound = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
-        
         toastElList.forEach(function (toastEl) {
             const toast = new bootstrap.Toast(toastEl);
             toast.show();
-            sound.cloneNode().play();  // Play sound for each toast
+            sound.cloneNode().play();
         });
     });
 </script>

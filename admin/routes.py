@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, abort, current_app, session
 from bson.objectid import ObjectId
 from extensions import mongo
 from utils import admin_required
@@ -448,4 +448,30 @@ def create_blog_form():
 def blog():
     return render_template('admin/blog.html')  # Ensure this template exists
 
-    ...
+@admin_bp.route("/review_blogs")
+@admin_required
+def review_blogs():
+    db = current_app.db
+    blogs = list(db.blogs.find({"is_approved": False}))
+    return render_template("admin/review_blogs.html", blogs=blogs)
+
+
+
+@admin_bp.route("/approve_blog/<blog_id>", methods=["POST"])
+@admin_required
+def approve_blog(blog_id):
+    current_app.db.blogs.update_one(
+        {"_id": ObjectId(blog_id)},
+        {"$set": {"is_approved": True}}
+    )
+    flash("✅ Blog approved.", "success")
+    return redirect(url_for("admin.review_blogs"))
+
+
+@admin_bp.route("/reject_blog/<blog_id>", methods=["POST"])
+@admin_required
+def reject_blog(blog_id):
+    current_app.db.blogs.delete_one({"_id": ObjectId(blog_id)})
+    flash("❌ Blog rejected and deleted.", "danger")
+    return redirect(url_for("admin.review_blogs"))
+

@@ -1,0 +1,38 @@
+{% extends "author/dashboard.html" %}
+{% block main %}
+
+<div class="container">
+  <h2 class="mb-4">📝 Manage Your Blogs</h2>
+
+  {% if blogs %}
+    <div class="row g-4">
+      {% for blog in blogs %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100 shadow-sm">
+            {% if blog.cover_image %}
+              <img src="/{{ blog.cover_image }}" class="card-img-top" alt="Cover Image">
+            {% endif %}
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">{{ blog.title }}</h5>
+              <p class="card-text text-muted small mb-2">{{ blog.category | capitalize }} • {{ blog.created_at.strftime('%Y-%m-%d') if blog.created_at else '' }}</p>
+              <p class="card-text">{{ blog.summary | truncate(100) }}</p>
+              <span class="badge bg-{{ 'success' if blog.is_approved else 'warning' }}">
+                {{ 'Approved' if blog.is_approved else 'Pending' }}
+              </span>
+              <div class="mt-auto pt-3 d-flex justify-content-between">
+                <a href="{{ url_for('author.edit_blog', blog_id=blog._id) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                <form method="POST" action="{{ url_for('author.delete_blog', blog_id=blog._id) }}" onsubmit="return confirm('Delete this blog?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">You haven't written any blog posts yet.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -2,16 +2,9 @@
 {% block title %}Author Dashboard{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <style>
-  /* Layout */
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-  body, html {
-    margin: 0; padding: 0; height: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f9f9f9;
-  }
   .dashboard-container {
     display: flex;
     height: 100vh;
@@ -36,12 +29,6 @@
     background: #fff;
     height: 100vh;
   }
-
-  /* Profile upload */
-  .profile-upload {
-    text-align: center;
-    margin-bottom: 30px;
-  }
   .profile-upload img {
     width: 120px;
     height: 120px;
@@ -53,7 +40,6 @@
     cursor: pointer;
   }
   .upload-label {
-    display: inline-block;
     background: #2980b9;
     color: white;
     padding: 8px 16px;
@@ -66,8 +52,6 @@
   .upload-label:hover {
     background: #3498db;
   }
-
-  /* Sidebar nav links */
   .sidebar-nav a {
     display: block;
     color: #ecf0f1;
@@ -82,219 +66,131 @@
   .sidebar-nav a.active {
     background-color: #34495e;
   }
-
-  /* Dashboard stats cards */
-  .dashboard-stats {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 30px;
-  }
-  .stat-card {
-    flex: 1;
-    background-color: #3498db;
-    color: white;
-    padding: 25px 20px;
-    border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-    text-align: center;
-    font-weight: 700;
-    font-size: 1.3rem;
-    user-select: none;
-    transition: background-color 0.3s ease;
-  }
-  .stat-card:hover {
-    background-color: #2980b9;
-  }
-
-  /* Table styling */
-  .styled-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-  .styled-table th, .styled-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  .styled-table thead {
-    background-color: #3498db;
-    color: #fff;
-    font-weight: bold;
-  }
-  .styled-table tbody tr:hover {
-    background-color: #f1f1f1;
-  }
-
-  /* Inline form for delete buttons */
-  .inline-form {
-    display: inline;
-  }
-  .inline-form button {
-    background: none;
-    border: none;
-    color: #e74c3c;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 700;
-  }
-  .inline-form button:hover {
-    text-decoration: underline;
-  }
-
-  /* Actions links */
-  .action-approve {
-    color: #27ae60;
-    margin-right: 10px;
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .action-approve:hover {
-    text-decoration: underline;
-  }
-  .action-edit {
-    color: #2980b9;
-    margin-right: 10px;
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .action-edit:hover {
-    text-decoration: underline;
-  }
-
-  /* Book lists */
-  .book-list {
-    list-style: none;
-    padding-left: 0;
-  }
-  .book-list li {
-    background: white;
-    margin-bottom: 12px;
-    padding: 12px 15px;
-    border-radius: 8px;
-    box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
-  }
-  .book-list a {
-    margin-right: 8px;
-    color: #2980b9;
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .book-list a:hover {
-    text-decoration: underline;
-  }
-
-  /* Loading spinner */
-  #loading-spinner {
-    display: none;
-    text-align: center;
-    padding: 10px;
-  }
 </style>
-
 <div class="dashboard-container">
-  <aside class="sidebar" aria-label="Authors Sidebar Navigation">
-    <div class="profile-upload">
-      <img id="profile-img" src="{{ url_for('static', filename='images/default-profile.png') }}" alt="Author Profile Picture" title="Click to upload profile picture" tabindex="0" role="button" aria-label="Upload profile picture">
+  <aside class="sidebar">
+    <div class="profile-upload text-center mb-4">
+      <img id="profile-img" src="{{ current_user.profile_image or url_for('static', filename='images/default-profile.png') }}" alt="Author Profile Picture">
       <input type="file" id="profile-upload-input" accept="image/*" hidden>
-      <label for="profile-upload-input" class="upload-label" tabindex="0">Upload Profile Picture</label>
+      <label for="profile-upload-input" class="upload-label">Upload Profile Picture</label>
     </div>
-    <nav class="sidebar-nav" role="navigation" aria-label="Author dashboard menu">
-      <a href="{{ url_for('author.upload') }}">➕ Upload a new book</a>
-      <a href="{{ url_for('author.manage_my_books') }}">📚 Manage Books</a>
-      <a href="{{ url_for('author.manage_comments') }}">💬 Manage Comments</a>
-      <a href="{{ url_for('author.blog_page') }}">✍️ Write a Blog</a>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('author.upload') }}" class="ajax-link">➕ Upload a new book</a>
+      <a href="{{ url_for('author.manage_my_books') }}" class="ajax-link">📚 Manage Books</a>
+      <a href="{{ url_for('author.manage_comments') }}" class="ajax-link">💬 Manage Comments</a>
+      <a href="{{ url_for('author.blog_page') }}" class="ajax-link">✍️ Write a Blog</a>
+      <a href="{{ url_for('author.manage_blogs') }}">📝 Manage Blogs</a>
+
     </nav>
   </aside>
 
-  <main id="main-content" class="main-content" tabindex="0" aria-live="polite">
-  {% block main %}
-    <h1>🛠 Author Dashboard</h1>
-    <p>Welcome, {{ current_user.username if current_user else "author" }}! Use the sidebar to manage all platform activity.</p>
-    <hr>
+  <main id="main-content" class="main-content">
+    {% block main %}
+    {% if content_template %}
+      {% include content_template %}
+    {% else %}
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-12">
+            <h1 class="mb-3">🛠 Author Dashboard</h1>
+            <p>Welcome, <strong>{{ current_user.username if current_user else "author" }}</strong>!</p>
+            <hr>
+          </div>
+        </div>
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+              <div class="card-body text-center">
+                <h5 class="card-title">Total Users</h5>
+                <p class="card-text fs-4">{{ total_users or 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+              <div class="card-body text-center">
+                <h5 class="card-title">Total Books</h5>
+                <p class="card-text fs-4">{{ total_books or 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card text-white bg-warning mb-3">
+              <div class="card-body text-center">
+                <h5 class="card-title">Pending Books</h5>
+                <p class="card-text fs-4">{{ pending_books or 'N/A' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-    <div class="dashboard-stats" aria-label="Dashboard statistics summary">
-      <div class="stat-card" role="region" aria-labelledby="total-users-label" tabindex="0">
-        <div id="total-users-label">Total Users</div>
-        <div>{{ total_users or 'N/A' }}</div>
-      </div>
-      <div class="stat-card" role="region" aria-labelledby="total-books-label" tabindex="0">
-        <div id="total-books-label">Total Books</div>
-        <div>{{ total_books or 'N/A' }}</div>
-      </div>
-      <div class="stat-card" role="region" aria-labelledby="pending-books-label" tabindex="0">
-        <div id="pending-books-label">Pending Books</div>
-        <div>{{ pending_books or 'N/A' }}</div>
-      </div>
-    </div>
-    <h2>Your Uploaded Books</h2>
-{% if books %}
-  <table class="styled-table" aria-label="Uploaded Books Table">
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Cover</th>
-        <th>PDF</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for book in books %}
-        <tr>
-          <td>{{ book.title }}</td>
-          <td>
-            {% if book.cover_image %}
-              <img src="{{ url_for('static', filename=book.cover_image.split('static/uploads/book_covers/')[-1]) }}" alt="{{ book.title }} Cover" style="height: 60px; border-radius: 4px;">
-            {% else %}
-              <span class="text-muted">No image</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if book.pdf_path %}
-              <a href="{{ url_for('uploaded_file', filename=book.pdf_path.split('static/uploads/book_pdfs/')[-1]) }}" class="btn btn-sm btn-outline-primary" target="_blank">📄 View PDF</a>
-            {% else %}
-              <span class="text-muted">No PDF</span>
-            {% endif %}
-          </td>
-          <td>
-            {% if book.is_approved %}
-              <span style="color: green;">Approved</span>
-            {% else %}
-              <span style="color: orange;">Pending</span>
-            {% endif %}
-          </td>
-          <td>
-            <a href="{{ url_for('author.edit_book', book_id=book._id) }}" class="action-edit">✏️ Edit</a>
-            <form action="{{ url_for('author.delete_book', book_id=book._id) }}" method="POST" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this book?');">
-              <button type="submit">🗑️ Delete</button>
-            </form>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-{% else %}
-  <p class="text-muted">You haven't uploaded any books yet.</p>
-{% endif %}
-<div class="stat-card" role="region" aria-labelledby="my-pending-books-label" tabindex="0">
-  <div id="my-pending-books-label">Your Pending Books</div>
-  <div>{{ my_pending_books or '0' }}</div>
-</div>
+        <h2>Your Uploaded Books</h2>
+        {% if books %}
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead class="table-primary">
+                <tr>
+                  <th>Title</th>
+                  <th>Cover</th>
+                  <th>PDF</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for book in books %}
+                  <tr>
+                    <td>{{ book.title }}</td>
+                    <td>
+                      {% if book.cover_image %}
+                        <img src="/{{ book.cover_image }}" alt="{{ book.title }} Cover" class="img-thumbnail" style="height: 60px;">
+                      {% else %}
+                        <span class="text-muted">No image</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if book.pdf_path %}
+                        <a href="/{{ book.pdf_path }}" class="btn btn-sm btn-outline-primary" target="_blank">📄 View PDF</a>
+                      {% else %}
+                        <span class="text-muted">No PDF</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if book.is_approved %}
+                        <span class="text-success">Approved</span>
+                      {% else %}
+                        <span class="text-warning">Pending</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <a href="{{ url_for('author.edit_book', book_id=book._id) }}" class="btn btn-sm btn-outline-secondary">✏️ Edit</a>
+                      <form action="{{ url_for('author.delete_book', book_id=book._id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this book?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">You haven't uploaded any books yet.</p>
+        {% endif %}
 
-
-  {% endblock %}
+        <div class="card bg-light border-0 mt-4">
+          <div class="card-body text-center">
+            <h5 class="card-title">Your Pending Books</h5>
+            <p class="card-text fs-4">{{ my_pending_books or '0' }}</p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    {% endblock %}
   </main>
 </div>
 
-<div id="loading-spinner" aria-live="assertive" aria-atomic="true">Loading...</div>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // Profile image preview
     const uploadInput = document.getElementById('profile-upload-input');
     const profileImg = document.getElementById('profile-img');
 
@@ -307,7 +203,6 @@
       }
     });
 
-    // Clicking on profile image triggers file input
     profileImg.addEventListener('click', () => uploadInput.click());
     profileImg.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -316,54 +211,30 @@
       }
     });
 
-    // Sidebar navigation dynamic loading
-    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
-    const mainContent = document.getElementById('main-content');
-    const loadingSpinner = document.getElementById('loading-spinner');
-
-    async function loadContent(url, linkClicked) {
-      try {
-        loadingSpinner.style.display = 'block';
-        const response = await fetch(url, {
-          headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        if (!response.ok) throw new Error('Network response was not OK');
-
-        const htmlText = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
-        const newContent = doc.getElementById('main-content');
-
-        if (newContent) {
-          mainContent.innerHTML = newContent.innerHTML;
-
-          // Update active class on sidebar links
-          sidebarLinks.forEach(a => a.classList.remove('active'));
-          if (linkClicked) linkClicked.classList.add('active');
-
-          // Update browser URL without reload
-          history.pushState(null, '', url);
-        } else {
-          window.location.href = url; // fallback full load
-        }
-      } catch (error) {
-        console.error('Failed to load page content:', error);
-        window.location.href = url; // fallback full load
-      } finally {
-        loadingSpinner.style.display = 'none';
-      }
-    }
-
-    sidebarLinks.forEach(link => {
+    document.querySelectorAll('.ajax-link').forEach(link => {
       link.addEventListener('click', e => {
         e.preventDefault();
-        loadContent(link.href, link);
+        fetch(link.href, {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.text())
+        .then(html => {
+          document.getElementById('main-content').innerHTML = html;
+          window.history.pushState({}, '', link.href);
+        });
       });
     });
 
-    // Handle browser back/forward buttons
     window.addEventListener('popstate', () => {
-      loadContent(location.href);
+      fetch(location.href, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('main-content').innerHTML = html;
+      });
     });
   });
 </script>

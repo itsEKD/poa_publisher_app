@@ -1,0 +1,92 @@
+{# templates/author/my_books_overview.html #}
+<div class="container py-4">
+
+  <h2 class="mb-4">📚 My Uploaded Books</h2>
+
+  <h4 class="text-warning mb-3">⏳ Pending Approval</h4>
+  {% if pending_books %}
+    <div class="row g-4 mb-5">
+      {% for book in pending_books %}
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+          {% if book.cover_image and book.cover_image != 'default-book.png' %}
+            <img src="{{ url_for('static', filename='uploads/book_covers/' ~ book.cover_image) }}" class="card-img-top" alt="Cover">
+          {% else %}
+            <img src="{{ url_for('static', filename='images/default-book.png') }}" class="card-img-top" alt="Default Cover">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ book.title }}</h5>
+            <div class="mb-2">
+              {% set pdf_filename = book.pdf_path or book.file_path %}
+              {% if pdf_filename %}
+                <a href="{{ url_for('uploaded_file', filename=pdf_filename.split('/')[-1]) }}" target="_blank" class="btn btn-sm btn-primary">📄 View PDF</a>
+              {% else %}
+                <span class="text-muted">No PDF uploaded</span>
+              {% endif %}
+            </div>
+            <span class="badge bg-warning text-dark">Pending Review</span>
+          </div>
+          <div class="card-footer d-flex justify-content-between">
+            <a href="{{ url_for('author.edit_book', book_id=book._id) }}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+            <form action="{{ url_for('author.delete_book', book_id=book._id) }}" method="POST" onsubmit="return confirm('Delete this pending book?');">
+              <button type="submit" class="btn btn-sm btn-danger">❌ Delete</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">You have no books currently pending approval.</p>
+  {% endif %}
+
+  <hr class="my-5">
+
+  <h4 class="text-success mb-3">✅ Approved Books</h4>
+  {% if approved_books %}
+    <div class="row g-4">
+      {% for book in approved_books %}
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+          {% if book.cover_image and book.cover_image != 'default-book.png' %}
+            <img src="{{ url_for('static', filename='uploads/book_covers/' ~ book.cover_image) }}" class="card-img-top" alt="Cover">
+          {% else %}
+            <img src="{{ url_for('static', filename='images/default-book.png') }}" class="card-img-top" alt="Default Cover">
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ book.title }}</h5>
+            <p class="card-text"><strong>Category:</strong> {{ book.category or "N/A" }}</p>
+            <p class="card-text"><strong>Tags:</strong> {{ book.tags | join(', ') }}</p>
+            <p class="card-text">
+              <strong>Price:</strong>
+              {% if book.is_free %}
+                Free
+              {% elif book.price is not none %}
+                ${{ "%.2f"|format(book.price|float) }}
+              {% else %}
+                N/A
+              {% endif %}
+            </p>
+          </div>
+          <div class="card-footer d-flex flex-column gap-2">
+            {% set pdf_filename = book.pdf_path or book.file_path %}
+            {% if pdf_filename %}
+              <a href="{{ url_for('uploaded_file', filename=pdf_filename.split('/')[-1]) }}" target="_blank" class="btn btn-sm btn-primary">📥 Download PDF</a>
+            {% else %}
+              <span class="text-muted">No PDF</span>
+            {% endif %}
+            <a href="{{ url_for('author.edit_book', book_id=book._id) }}" class="btn btn-sm btn-outline-warning">✏️ Edit</a>
+            <form action="{{ url_for('author.delete_book', book_id=book._id) }}" method="POST" onsubmit="return confirm('Delete this book?');">
+              <button type="submit" class="btn btn-sm btn-danger">❌ Delete</button>
+            </form>
+            <a href="{{ url_for('author.book_feedback_page', book_id=book._id) }}" class="btn btn-sm btn-outline-info">💬 Feedback</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">You have no approved books yet.</p>
+  {% endif %}
+
+</div>
