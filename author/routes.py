@@ -242,10 +242,10 @@ def blog_page(): # Renamed from 'blog' to 'blog_page' for clarity
                                pending_books=pending_books_count)
 
 # --- POST route for blog post creation ---
-@author_bp.route("/create_blog_post", methods=["POST"])
+@author_bp.route("/create_blog", methods=["POST"])
 @role_required(ROLE_AUTHOR)
 @csrf.exempt
-def create_blog_post():
+def create_blog():
     db = current_app.db
     # ... (Your existing create_blog_post logic from author_routes.py) ...
     # Ensure BLOG_COVER_UPLOAD_FOLDER is accessible via current_app.config or defined globally.
