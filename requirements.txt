@@ -10,11 +10,13 @@ Flask-Dance==7.1.0
 Flask-Login==0.6.3
 Flask-PyMongo==3.0.1
 Flask-WTF==1.2.2
+gunicorn==23.0.0
 idna==3.10
 itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.2
 oauthlib==3.2.2
+packaging==25.0
 pymongo==4.13.0
 python-dotenv==1.1.0
 requests==2.32.3
