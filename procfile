@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-web: gunicorn wsgi:app
-=======
 web: gunicorn app:create_app
->>>>>>> a33240deb2417d2333c31e8a38af00d6d9881db0
